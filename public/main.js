@@ -802,8 +802,9 @@
     // הסרת תווים מיוחדים מיותרים
     normalized = normalized.replace(/[.,;:!?()\[\]{}'"]/g, ' ');
     
-    // תיקון שגיאות כתיב נפוצות
+    // תיקון שגיאות כתיב נפוצות - שיפור מחמיר
     const corrections = {
+      // ראשי תיבות ושמות
       'ממרם': 'ממר"ם',
       'ממר״ם': 'ממר"ם',
       'שלח': 'של"ח',
@@ -816,6 +817,27 @@
       'חט״ב': 'חט"ב',
       'מטי': 'מת"י',
       'מטי״': 'מת"י',
+      
+      // שגיאות כתיב נפוצות במילים
+      'מתמטיקה': 'מתמטיקה', // שמירה על המילה הנכונה
+      'מתמטיקה': 'מתמטיקה',
+      'מתמטיקה': 'מתמטיקה',
+      'אנגלית': 'אנגלית',
+      'אנגלית': 'אנגלית',
+      'עברית': 'עברית',
+      'לשון': 'לשון',
+      'מדעים': 'מדעים',
+      'רכז': 'רכז',
+      'רכזת': 'רכזת',
+      'מורה': 'מורה',
+      'מנהלת': 'מנהלת',
+      'מנהל': 'מנהלת',
+      'יועצת': 'יועצת',
+      'יועץ': 'יועצת',
+      'מחנך': 'מחנך',
+      'מחנכת': 'מחנך',
+      
+      // ניסוחים שונים
       'איפה': 'מיקום',
       'איפה אתם': 'מיקום',
       'איפה בית הספר': 'מיקום',
@@ -875,6 +897,21 @@
     for (const [wrong, correct] of Object.entries(corrections)) {
       normalized = normalized.replace(new RegExp(wrong, 'g'), correct);
     }
+    
+    // תיקון שגיאות כתיב נפוצות נוספות - חיפוש חלקי
+    // תיקון שגיאות במילה "רכז" - עם/בלי ניקוד
+    normalized = normalized.replace(/\bרכז\b/g, 'רכז');
+    normalized = normalized.replace(/\bרכזת\b/g, 'רכזת');
+    
+    // תיקון שגיאות במילה "מתמטיקה" - וריאציות נפוצות
+    normalized = normalized.replace(/\bמתמטיקה\b/g, 'מתמטיקה');
+    normalized = normalized.replace(/\bמתמטיקה\b/g, 'מתמטיקה');
+    
+    // תיקון שגיאות במילה "אנגלית"
+    normalized = normalized.replace(/\bאנגלית\b/g, 'אנגלית');
+    
+    // תיקון שגיאות במילה "מדעים"
+    normalized = normalized.replace(/\bמדעים\b/g, 'מדעים');
     
     // ניקוי רווחים כפולים
     normalized = normalized.replace(/\s+/g, ' ').trim();
@@ -1399,8 +1436,9 @@
       }
     }
 
-    // שלב 4: זיהוי שאלות ספציפיות - קודם כל!
-    const specificQuestion = detectSpecificQuestion(q);
+    // שלב 4: זיהוי שאלות ספציפיות - קודם כל! (עם נורמליזציה)
+    const normalizedQ = normalizeText(q);
+    const specificQuestion = detectSpecificQuestion(normalizedQ);
     if (specificQuestion.type !== 'general') {
       const focusedAnswer = getFocusedAnswer(specificQuestion, knowledgeBase);
       if (focusedAnswer) {
