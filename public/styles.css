@@ -1423,7 +1423,128 @@ main.app-shell {
 }
 
 /* Responsive - התאמה למובייל */
+@media (max-width: 768px) {
+  /* כפתורי Pill - קטנים יותר ועדינים יותר */
+  .pill {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    min-height: 48px;
+    border-radius: 16px;
+    border-width: 1.5px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  }
+  
+  .pill:hover, .pill:focus-visible {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  }
+  
+  .cards {
+    gap: 6px;
+  }
+  
+  /* שדה קלט וכפתור שלח - מותאם לנייד */
+  .chat__input {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 0 0 18px 18px;
+  }
+  
+  .chat__input input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 1rem;
+    min-height: 56px;
+    border-radius: 14px;
+    line-height: 1.4;
+  }
+  
+  .send {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    min-height: 56px;
+    border-radius: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .send:hover, .send:focus-visible {
+    transform: translateY(-1px) scale(1.01);
+  }
+  
+  /* חלון צ'אט */
+  .chat__window {
+    padding: 16px;
+  }
+  
+  .bubble {
+    padding: 14px 16px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+  
+  .bubble__title {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+}
+
 @media (max-width: 480px) {
+  /* כפתורים עוד יותר קטנים בטלפונים קטנים */
+  .pill {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    min-height: 44px;
+    border-radius: 14px;
+  }
+  
+  .cards {
+    gap: 5px;
+  }
+  
+  /* שדה קלט וכפתור שלח - עוד יותר קומפקטי */
+  .chat__input {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .chat__input input {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+  
+  .send {
+    padding: 14px;
+    font-size: 0.95rem;
+    min-height: 52px;
+    border-radius: 12px;
+  }
+  
+  .chat__window {
+    padding: 12px;
+  }
+  
+  .bubble {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+  
   .cta {
     padding: 14px 20px;
     font-size: 0.9rem;
@@ -1433,6 +1554,17 @@ main.app-shell {
   }
   .footer-cta {
     gap: 10px;
+  }
+  
+  /* Hero - קטן יותר */
+  .hero {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 20px;
+  }
+  
+  .hero__text h1 {
+    font-size: 1.8rem;
   }
 }
 .footer-brand {
