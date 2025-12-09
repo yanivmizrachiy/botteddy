@@ -1519,16 +1519,124 @@ main.app-shell {
   }
 }
 
-/* GPU Acceleration - Will Change */
+/* ============================================
+   ⚡ שלב 4: אופטימיזציית ביצועים - GPU Acceleration
+   ============================================ */
+
+/* GPU Acceleration - Will Change - Optimized */
+.pill,
+.send,
+.cta,
+.pill-question,
+.track-btn,
+.bubble,
+.hero-cta {
+  /* Hardware Acceleration */
+  will-change: transform, box-shadow, opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+  
+  /* Font Rendering Optimization */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Performance Hints */
+  contain: layout style paint;
+}
+
+/* Optimize Animations - Use Transform & Opacity Only */
+.pill::before,
+.send::before,
+.cta::before {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Reduce Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .pill,
+  .send,
+  .cta,
+  .pill-question,
+  .track-btn,
+  .bubble {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .pill::before,
+  .send::before,
+  .cta::before {
+    animation: none !important;
+  }
+}
+
+/* Lazy Load Heavy Effects on Mobile */
+@media (max-width: 768px) {
+  /* Disable heavy effects on low-end devices */
+  .pill::before {
+    display: none; /* Disable shine effect on mobile for performance */
+  }
+  
+  /* Simplify shadows on mobile */
+  .pill,
+  .send,
+  .cta {
+    box-shadow: var(--elevation-2);
+  }
+  
+  .pill:hover,
+  .pill:focus-visible,
+  .send:hover,
+  .send:focus-visible,
+  .cta:hover,
+  .cta:focus-visible {
+    box-shadow: var(--elevation-3);
+  }
+}
+
+/* Touch Action Optimization */
 .pill,
 .send,
 .cta,
 .pill-question,
 .track-btn {
-  will-change: transform, box-shadow;
-  transform: translateZ(0);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Prevent Layout Shift */
+.pill,
+.send,
+.cta {
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+/* Optimize Backdrop Filter - Conditional */
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .pill {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+  .pill {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.5) 0%, 
+      rgba(255, 255, 255, 0.35) 100%);
+  }
 }
 
 /* Responsive - התאמה למובייל - UPGRADED VERSION */
