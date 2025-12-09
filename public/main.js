@@ -910,35 +910,45 @@
     return commonChars / Math.max(s1.length, s2.length);
   }
 
-  // זיהוי שאלות ספציפיות - שלב 1
+  // זיהוי שאלות ספציפיות - שלב 1 (שיפור דיוק מחמיר)
   function detectSpecificQuestion(question) {
     const lower = normalizeText(question);
     
-    // זיהוי שאלות "מי" על בעלי תפקידים ספציפיים
+    // זיהוי שאלות "מי" על בעלי תפקידים ספציפיים - עם עוד patterns
     const rolePatterns = {
-      'רכז מתמטיקה': ['רכז מתמטיקה', 'מי רכז מתמטיקה', 'מי רכזת מתמטיקה', 'רכזת מתמטיקה'],
-      'רכזת אנגלית': ['רכזת אנגלית', 'מי רכזת אנגלית', 'מי רכז אנגלית', 'רכז אנגלית'],
-      'רכזת לשון': ['רכזת לשון', 'מי רכזת לשון', 'מי רכז לשון', 'רכז לשון', 'רכזת עברית', 'מי רכזת עברית'],
-      'רכזת מת"י': ['רכזת מת"י', 'מי רכזת מת"י', 'מי רכז מת"י', 'רכז מת"י'],
-      'רכזת מדעים': ['רכזת מדעים', 'מי רכזת מדעים', 'מי רכז מדעים', 'רכז מדעים'],
-      'רכזת פדגוגית': ['רכזת פדגוגית', 'מי רכזת פדגוגית', 'מי רכז פדגוגי', 'רכז פדגוגי'],
-      'מנהלת': ['מי המנהלת', 'מי מנהלת', 'מי מנהל', 'מי מנהלת החטיבה', 'מי מנהל החטיבה'],
-      'יועצת': ['מי היועצת', 'מי יועצת', 'מי יועץ', 'מי היועצת שלי', 'מי יועצת השכבה'],
-      'מחנך': ['מי המחנך', 'מי מחנך', 'מי מחנכת', 'מי המחנך שלי', 'מי מחנכת שלי'],
-      'מורה מתמטיקה': ['מי המורה למתמטיקה', 'מי מלמד מתמטיקה', 'מי המורה שלי במתמטיקה'],
-      'מורה אנגלית': ['מי המורה לאנגלית', 'מי מלמד אנגלית', 'מי המורה שלי באנגלית'],
-      'מורה מדעים': ['מי המורה למדעים', 'מי מלמד מדעים', 'מי המורה שלי במדעים'],
-      'מורה עברית': ['מי המורה לעברית', 'מי מלמד עברית', 'מי המורה שלי בעברית', 'מי המורה ללשון'],
-      'מורה היסטוריה': ['מי המורה להיסטוריה', 'מי מלמד היסטוריה', 'מי המורה שלי בהיסטוריה'],
-      'מורה ספרות': ['מי המורה לספרות', 'מי מלמד ספרות', 'מי המורה שלי בספרות'],
-      'מורה תנ"ך': ['מי המורה לתנ"ך', 'מי מלמד תנ"ך', 'מי המורה שלי בתנ"ך'],
-      'מורה מוזיקה': ['מי המורה למוזיקה', 'מי מלמד מוזיקה', 'מי המורה שלי במוזיקה'],
-      'מורה ספורט': ['מי המורה לספורט', 'מי מלמד ספורט', 'מי המורה שלי בספורט', 'מי המורה לחנ"ג']
+      'רכז מתמטיקה': ['רכז מתמטיקה', 'מי רכז מתמטיקה', 'מי רכזת מתמטיקה', 'רכזת מתמטיקה', 'רכז של מתמטיקה', 'רכזת של מתמטיקה', 'מי רכז של מתמטיקה', 'מי רכזת של מתמטיקה', 'רכז מקצוע מתמטיקה', 'רכזת מקצוע מתמטיקה'],
+      'רכזת אנגלית': ['רכזת אנגלית', 'מי רכזת אנגלית', 'מי רכז אנגלית', 'רכז אנגלית', 'רכז של אנגלית', 'רכזת של אנגלית', 'מי רכז של אנגלית', 'מי רכזת של אנגלית', 'רכז מקצוע אנגלית', 'רכזת מקצוע אנגלית'],
+      'רכזת לשון': ['רכזת לשון', 'מי רכזת לשון', 'מי רכז לשון', 'רכז לשון', 'רכזת עברית', 'מי רכזת עברית', 'רכז עברית', 'מי רכז עברית', 'רכז של לשון', 'רכזת של עברית', 'רכז מקצוע לשון', 'רכזת מקצוע עברית'],
+      'רכזת מת"י': ['רכזת מת"י', 'מי רכזת מת"י', 'מי רכז מת"י', 'רכז מת"י', 'רכז של מת"י', 'רכזת של מת"י', 'מי רכז של מת"י', 'מי רכזת של מת"י', 'רכז מקצוע מת"י', 'רכזת מקצוע מת"י'],
+      'רכזת מדעים': ['רכזת מדעים', 'מי רכזת מדעים', 'מי רכז מדעים', 'רכז מדעים', 'רכז של מדעים', 'רכזת של מדעים', 'מי רכז של מדעים', 'מי רכזת של מדעים', 'רכז מקצוע מדעים', 'רכזת מקצוע מדעים'],
+      'רכזת פדגוגית': ['רכזת פדגוגית', 'מי רכזת פדגוגית', 'מי רכז פדגוגי', 'רכז פדגוגי', 'רכז של פדגוגיה', 'רכזת של פדגוגיה', 'מי רכז פדגוגיה', 'מי רכזת פדגוגיה'],
+      'מנהלת': ['מי המנהלת', 'מי מנהלת', 'מי מנהל', 'מי מנהלת החטיבה', 'מי מנהל החטיבה', 'מי המנהלת של החטיבה', 'מי מנהלת בית הספר', 'מי מנהל בית הספר'],
+      'יועצת': ['מי היועצת', 'מי יועצת', 'מי יועץ', 'מי היועצת שלי', 'מי יועצת השכבה', 'מי היועצת של השכבה', 'מי יועץ השכבה'],
+      'מחנך': ['מי המחנך', 'מי מחנך', 'מי מחנכת', 'מי המחנך שלי', 'מי מחנכת שלי', 'מי המחנך של הכיתה', 'מי מחנכת של הכיתה'],
+      'מורה מתמטיקה': ['מי המורה למתמטיקה', 'מי מלמד מתמטיקה', 'מי המורה שלי במתמטיקה', 'מי מלמד אותי מתמטיקה', 'מי המורה של מתמטיקה'],
+      'מורה אנגלית': ['מי המורה לאנגלית', 'מי מלמד אנגלית', 'מי המורה שלי באנגלית', 'מי מלמד אותי אנגלית', 'מי המורה של אנגלית'],
+      'מורה מדעים': ['מי המורה למדעים', 'מי מלמד מדעים', 'מי המורה שלי במדעים', 'מי מלמד אותי מדעים', 'מי המורה של מדעים'],
+      'מורה עברית': ['מי המורה לעברית', 'מי מלמד עברית', 'מי המורה שלי בעברית', 'מי מלמד אותי עברית', 'מי המורה של עברית', 'מי המורה ללשון', 'מי מלמד לשון'],
+      'מורה היסטוריה': ['מי המורה להיסטוריה', 'מי מלמד היסטוריה', 'מי המורה שלי בהיסטוריה', 'מי מלמד אותי היסטוריה'],
+      'מורה ספרות': ['מי המורה לספרות', 'מי מלמד ספרות', 'מי המורה שלי בספרות', 'מי מלמד אותי ספרות'],
+      'מורה תנ"ך': ['מי המורה לתנ"ך', 'מי מלמד תנ"ך', 'מי המורה שלי בתנ"ך', 'מי מלמד אותי תנ"ך'],
+      'מורה מוזיקה': ['מי המורה למוזיקה', 'מי מלמד מוזיקה', 'מי המורה שלי במוזיקה', 'מי מלמד אותי מוזיקה'],
+      'מורה ספורט': ['מי המורה לספורט', 'מי מלמד ספורט', 'מי המורה שלי בספורט', 'מי מלמד אותי ספורט', 'מי המורה לחנ"ג', 'מי מלמד חנ"ג']
     };
     
-    // בדיקה אם השאלה היא ספציפית
-    for (const [role, patterns] of Object.entries(rolePatterns)) {
-      for (const pattern of patterns) {
+    // בדיקה מדויקת אם השאלה היא ספציפית - עם עדיפות ל-patterns ארוכים יותר
+    const sortedRoles = Object.entries(rolePatterns).sort((a, b) => {
+      // נמיין לפי אורך ה-pattern הארוך ביותר בכל role
+      const maxLenA = Math.max(...a[1].map(p => p.length));
+      const maxLenB = Math.max(...b[1].map(p => p.length));
+      return maxLenB - maxLenA; // ארוך יותר קודם
+    });
+    
+    for (const [role, patterns] of sortedRoles) {
+      // נמיין את ה-patterns לפי אורך (ארוך יותר קודם)
+      const sortedPatterns = [...patterns].sort((a, b) => b.length - a.length);
+      
+      for (const pattern of sortedPatterns) {
         if (lower.includes(pattern)) {
           return { type: 'specific-role', role, question };
         }
@@ -963,56 +973,153 @@
     return { type: 'general', question };
   }
 
-  // תשובות ממוקדות - שלב 2
+  // תשובות ממוקדות - שלב 2 (שיפור דיוק מחמיר)
   function getFocusedAnswer(specificQuestion, knowledgeBase) {
     const { type, role, question } = specificQuestion;
     
     if (type === 'specific-role') {
+      const roleLower = normalizeText(role);
+      
       // חיפוש מדויק של בעל התפקיד
       for (const item of knowledgeBase) {
-        // חיפוש ב-bullets
+        // חיפוש ב-bullets - עדיפות ראשונה
         if (item.bullets) {
           for (const bullet of item.bullets) {
             const bulletLower = normalizeText(bullet);
-            const roleLower = normalizeText(role);
             
-            // בדיקה אם ה-bullet מכיל את התפקיד
-            const isMatch = bulletLower.includes(roleLower) || 
-                (roleLower.includes('רכז') && bulletLower.includes('רכז') && 
-                 (roleLower.includes('מתמטיקה') && bulletLower.includes('מתמטיקה') ||
-                  roleLower.includes('אנגלית') && bulletLower.includes('אנגלית') ||
-                  roleLower.includes('לשון') && bulletLower.includes('לשון') ||
-                  roleLower.includes('עברית') && bulletLower.includes('עברית') ||
-                  roleLower.includes('מת"י') && bulletLower.includes('מת"י') ||
-                  roleLower.includes('מדעים') && bulletLower.includes('מדעים') ||
-                  roleLower.includes('פדגוגית') && bulletLower.includes('פדגוגית')));
+            // בדיקה מדויקת אם ה-bullet מכיל את התפקיד
+            let isMatch = false;
+            
+            // בדיקה 1: התפקיד מופיע במלואו ב-bullet
+            if (bulletLower.includes(roleLower)) {
+              isMatch = true;
+            }
+            // בדיקה 2: התפקיד הוא "רכז" + מקצוע - נבדוק אם יש התאמה
+            else if (roleLower.includes('רכז') && bulletLower.includes('רכז')) {
+              // נבדוק התאמה מדויקת של המקצוע
+              const subjectMatch = 
+                (roleLower.includes('מתמטיקה') && bulletLower.includes('מתמטיקה')) ||
+                (roleLower.includes('אנגלית') && bulletLower.includes('אנגלית')) ||
+                (roleLower.includes('לשון') && bulletLower.includes('לשון')) ||
+                (roleLower.includes('עברית') && bulletLower.includes('עברית')) ||
+                (roleLower.includes('מת"י') && bulletLower.includes('מת"י')) ||
+                (roleLower.includes('מדעים') && bulletLower.includes('מדעים')) ||
+                (roleLower.includes('פדגוגית') && bulletLower.includes('פדגוגית'));
+              
+              if (subjectMatch) {
+                isMatch = true;
+              }
+            }
             
             if (isMatch) {
-              // חילוץ רק המידע הרלוונטי - ננסה למצוא את החלק הרלוונטי ב-bullet
-              // אם ה-bullet ארוך, נחלץ רק את החלק הרלוונטי
+              // חילוץ מדויק של המידע הרלוונטי
               if (roleLower.includes('רכז')) {
-                // נחפש את החלק שמכיל "רכז" + שם המקצוע
-                const parts = bullet.split(/[,\-–—]/);
-                for (const part of parts) {
-                  const partLower = normalizeText(part);
-                  if (partLower.includes('רכז') && 
-                      (roleLower.includes('מתמטיקה') && partLower.includes('מתמטיקה') ||
-                       roleLower.includes('אנגלית') && partLower.includes('אנגלית') ||
-                       roleLower.includes('לשון') && partLower.includes('לשון') ||
-                       roleLower.includes('עברית') && partLower.includes('עברית') ||
-                       roleLower.includes('מת"י') && partLower.includes('מת"י') ||
-                       roleLower.includes('מדעים') && partLower.includes('מדעים') ||
-                       roleLower.includes('פדגוגית') && partLower.includes('פדגוגית'))) {
+                // שיטה 1: חיפוש ישיר של "רכז/רכזת" + מקצוע + קו מפריד + שם
+                // דוגמה: "רכז מתמטיקה – רז יניב"
+                const directPattern = new RegExp(
+                  `רכז(ת)?\\s+${roleLower.includes('מתמטיקה') ? 'מתמטיקה' : 
+                    roleLower.includes('אנגלית') ? 'אנגלית' : 
+                    roleLower.includes('לשון') ? 'לשון' : 
+                    roleLower.includes('עברית') ? 'עברית' : 
+                    roleLower.includes('מת"י') ? 'מת"י' : 
+                    roleLower.includes('מדעים') ? 'מדעים' : 
+                    roleLower.includes('פדגוגית') ? 'פדגוגית' : ''}\\s*[–—\\-]\\s*([^,\\-–—\\.]+)`,
+                  'i'
+                );
+                const directMatch = bullet.match(directPattern);
+                if (directMatch) {
+                  // מצאנו התאמה ישירה - נחזיר את החלק הרלוונטי
+                  const fullMatch = directMatch[0].trim();
+                  return {
+                    answer: fullMatch,
+                    topic: item.topic,
+                    isFocused: true
+                  };
+                }
+                
+                // שיטה 2: חיפוש בכל ה-bullet של החלק שמכיל "רכז" + מקצוע + קו מפריד
+                const coordinatorPattern = /רכז(ת)?\s+[^–—\-]+[–—\-]\s*([^,\-–—\.]+)/;
+                const coordinatorMatch = bullet.match(coordinatorPattern);
+                if (coordinatorMatch) {
+                  const matchedPart = coordinatorMatch[0].trim();
+                  const matchedPartLower = normalizeText(matchedPart);
+                  
+                  // בדיקה שהחלק מכיל את המקצוע הנכון
+                  const hasCorrectSubject = 
+                    (roleLower.includes('מתמטיקה') && matchedPartLower.includes('מתמטיקה')) ||
+                    (roleLower.includes('אנגלית') && matchedPartLower.includes('אנגלית')) ||
+                    (roleLower.includes('לשון') && matchedPartLower.includes('לשון')) ||
+                    (roleLower.includes('עברית') && matchedPartLower.includes('עברית')) ||
+                    (roleLower.includes('מת"י') && matchedPartLower.includes('מת"י')) ||
+                    (roleLower.includes('מדעים') && matchedPartLower.includes('מדעים')) ||
+                    (roleLower.includes('פדגוגית') && matchedPartLower.includes('פדגוגית'));
+                  
+                  if (hasCorrectSubject) {
                     return {
-                      answer: part.trim(),
+                      answer: matchedPart,
                       topic: item.topic,
                       isFocused: true
                     };
                   }
                 }
+                
+                // שיטה 3: חלוקה לפי פסיקים וקווים וחיפוש החלק הרלוונטי
+                const separators = /[,\-–—:]/;
+                const parts = bullet.split(separators);
+                
+                for (const part of parts) {
+                  const partTrimmed = part.trim();
+                  const partLower = normalizeText(partTrimmed);
+                  
+                  // בדיקה מדויקת: החלק מכיל "רכז" + המקצוע
+                  const hasCoordinator = partLower.includes('רכז');
+                  const hasSubject = 
+                    (roleLower.includes('מתמטיקה') && partLower.includes('מתמטיקה')) ||
+                    (roleLower.includes('אנגלית') && partLower.includes('אנגלית')) ||
+                    (roleLower.includes('לשון') && partLower.includes('לשון')) ||
+                    (roleLower.includes('עברית') && partLower.includes('עברית')) ||
+                    (roleLower.includes('מת"י') && partLower.includes('מת"י')) ||
+                    (roleLower.includes('מדעים') && partLower.includes('מדעים')) ||
+                    (roleLower.includes('פדגוגית') && partLower.includes('פדגוגית'));
+                  
+                  if (hasCoordinator && hasSubject) {
+                    // מצאנו את החלק הרלוונטי
+                    // אם החלק מכיל קו מפריד, נחזיר אותו כמו שהוא
+                    if (partTrimmed.includes('–') || partTrimmed.includes('—') || partTrimmed.includes('-')) {
+                      return {
+                        answer: partTrimmed,
+                        topic: item.topic,
+                        isFocused: true
+                      };
+                    }
+                    // אם לא, נחפש את החלק הבא (שמכיל את השם)
+                    const partIndex = parts.indexOf(part);
+                    if (partIndex < parts.length - 1) {
+                      const nextPart = parts[partIndex + 1].trim();
+                      return {
+                        answer: `${partTrimmed} – ${nextPart}`,
+                        topic: item.topic,
+                        isFocused: true
+                      };
+                    }
+                  }
+                }
               }
               
-              // אם לא מצאנו חלק ספציפי, נחזיר את כל ה-bullet
+              // אם לא מצאנו חלק ספציפי, נחזיר את כל ה-bullet (אבל זה לא אידיאלי)
+              // ננסה לקצר את ה-bullet אם אפשר
+              if (bullet.length > 100) {
+                // ננסה למצוא את החלק הרלוונטי בלבד
+                const relevantPart = bullet.match(new RegExp(`[^.]*${role.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^.]*`, 'i'));
+                if (relevantPart) {
+                  return {
+                    answer: relevantPart[0].trim(),
+                    topic: item.topic,
+                    isFocused: true
+                  };
+                }
+              }
+              
               return {
                 answer: bullet,
                 topic: item.topic,
@@ -1024,15 +1131,23 @@
         
         // חיפוש ב-answer (רק אם לא מצאנו ב-bullets)
         const answerLower = normalizeText(item.answer);
-        const roleLower = normalizeText(role);
         if (answerLower.includes(roleLower)) {
           // ננסה למצוא משפט רלוונטי מתוך התשובה
           const sentences = item.answer.split(/[.!?]/);
           for (const sentence of sentences) {
             const sentenceLower = normalizeText(sentence);
             if (sentenceLower.includes(roleLower)) {
+              // ננסה לקצר את המשפט אם הוא ארוך מדי
+              let focusedSentence = sentence.trim();
+              if (focusedSentence.length > 150) {
+                // ננסה למצוא את החלק הרלוונטי בלבד
+                const relevantPart = sentence.match(new RegExp(`[^.]*${role.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^.]*`, 'i'));
+                if (relevantPart) {
+                  focusedSentence = relevantPart[0].trim();
+                }
+              }
               return {
-                answer: sentence.trim(),
+                answer: focusedSentence,
                 topic: item.topic,
                 isFocused: true
               };
