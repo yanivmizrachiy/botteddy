@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 שאלות ותמיכה
+    url: https://github.com/yanivmizrachiy/botteddy/discussions
+    about: שאל שאלות או בקש עזרה מהקהילה
+  - name: 📧 צור קשר
+    url: mailto:yanivmiz77@gmail.com
+    about: צור קשר ישיר עם המפתח
+

@@ -2,6 +2,15 @@
 
 <div dir="rtl">
 
+[![GitHub Pages](https://img.shields.io/badge/🌐%20Live%20Site-GitHub%20Pages-blue?style=for-the-badge)](https://yanivmizrachiy.github.io/botteddy/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/yanivmizrachiy/botteddy)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)](https://yanivmizrachiy.github.io/botteddy/)
+
+## 🌐 **גש לאתר החי:** [https://yanivmizrachiy.github.io/botteddy/](https://yanivmizrachiy.github.io/botteddy/)
+
+---
+
 ## 📖 אודות הפרויקט
 
 **בוטדי** הוא בוט חכם אינטראקטיבי שנועד לעזור לתלמידים והורים להכיר את חטיבת הביניים ע"ש טדי קולק בפסגת זאב. הבוט מספק מידע על בית הספר, מסלולי הלימוד, פעילויות, וכל מה שצריך לדעת על החיים בחטיבה.
@@ -77,8 +86,10 @@ php -S localhost:8000
 
 ## 🔗 קישורים חשובים
 
+- 🌐 **[בוטדי - אתר חי](https://yanivmizrachiy.github.io/botteddy/)** ⭐
 - 🌐 [אתר בית הספר](https://tedikolek-paz.jlm.org.il/)
 - 📘 [פייסבוק](https://www.facebook.com/profile.php?id=100039470354740)
+- 💻 [קוד מקור ב-GitHub](https://github.com/yanivmizrachiy/botteddy)
 
 ## 🗺️ תוכנית שדרוגים
 
