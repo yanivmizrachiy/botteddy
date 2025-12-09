@@ -910,6 +910,168 @@
     return commonChars / Math.max(s1.length, s2.length);
   }
 
+  // זיהוי שאלות ספציפיות - שלב 1
+  function detectSpecificQuestion(question) {
+    const lower = normalizeText(question);
+    
+    // זיהוי שאלות "מי" על בעלי תפקידים ספציפיים
+    const rolePatterns = {
+      'רכז מתמטיקה': ['רכז מתמטיקה', 'מי רכז מתמטיקה', 'מי רכזת מתמטיקה', 'רכזת מתמטיקה'],
+      'רכזת אנגלית': ['רכזת אנגלית', 'מי רכזת אנגלית', 'מי רכז אנגלית', 'רכז אנגלית'],
+      'רכזת לשון': ['רכזת לשון', 'מי רכזת לשון', 'מי רכז לשון', 'רכז לשון', 'רכזת עברית', 'מי רכזת עברית'],
+      'רכזת מת"י': ['רכזת מת"י', 'מי רכזת מת"י', 'מי רכז מת"י', 'רכז מת"י'],
+      'רכזת מדעים': ['רכזת מדעים', 'מי רכזת מדעים', 'מי רכז מדעים', 'רכז מדעים'],
+      'רכזת פדגוגית': ['רכזת פדגוגית', 'מי רכזת פדגוגית', 'מי רכז פדגוגי', 'רכז פדגוגי'],
+      'מנהלת': ['מי המנהלת', 'מי מנהלת', 'מי מנהל', 'מי מנהלת החטיבה', 'מי מנהל החטיבה'],
+      'יועצת': ['מי היועצת', 'מי יועצת', 'מי יועץ', 'מי היועצת שלי', 'מי יועצת השכבה'],
+      'מחנך': ['מי המחנך', 'מי מחנך', 'מי מחנכת', 'מי המחנך שלי', 'מי מחנכת שלי'],
+      'מורה מתמטיקה': ['מי המורה למתמטיקה', 'מי מלמד מתמטיקה', 'מי המורה שלי במתמטיקה'],
+      'מורה אנגלית': ['מי המורה לאנגלית', 'מי מלמד אנגלית', 'מי המורה שלי באנגלית'],
+      'מורה מדעים': ['מי המורה למדעים', 'מי מלמד מדעים', 'מי המורה שלי במדעים'],
+      'מורה עברית': ['מי המורה לעברית', 'מי מלמד עברית', 'מי המורה שלי בעברית', 'מי המורה ללשון'],
+      'מורה היסטוריה': ['מי המורה להיסטוריה', 'מי מלמד היסטוריה', 'מי המורה שלי בהיסטוריה'],
+      'מורה ספרות': ['מי המורה לספרות', 'מי מלמד ספרות', 'מי המורה שלי בספרות'],
+      'מורה תנ"ך': ['מי המורה לתנ"ך', 'מי מלמד תנ"ך', 'מי המורה שלי בתנ"ך'],
+      'מורה מוזיקה': ['מי המורה למוזיקה', 'מי מלמד מוזיקה', 'מי המורה שלי במוזיקה'],
+      'מורה ספורט': ['מי המורה לספורט', 'מי מלמד ספורט', 'מי המורה שלי בספורט', 'מי המורה לחנ"ג']
+    };
+    
+    // בדיקה אם השאלה היא ספציפית
+    for (const [role, patterns] of Object.entries(rolePatterns)) {
+      for (const pattern of patterns) {
+        if (lower.includes(pattern)) {
+          return { type: 'specific-role', role, question };
+        }
+      }
+    }
+    
+    // זיהוי שאלות "מה" ספציפיות
+    if (lower.match(/^מה\s+(זה|הוא|היא|הם|הן)\s+/)) {
+      return { type: 'what-is', question };
+    }
+    
+    // זיהוי שאלות "איפה" ספציפיות
+    if (lower.match(/^איפה\s+/)) {
+      return { type: 'where', question };
+    }
+    
+    // זיהוי שאלות "מתי" ספציפיות
+    if (lower.match(/^מתי\s+/)) {
+      return { type: 'when', question };
+    }
+    
+    return { type: 'general', question };
+  }
+
+  // תשובות ממוקדות - שלב 2
+  function getFocusedAnswer(specificQuestion, knowledgeBase) {
+    const { type, role, question } = specificQuestion;
+    
+    if (type === 'specific-role') {
+      // חיפוש מדויק של בעל התפקיד
+      for (const item of knowledgeBase) {
+        // חיפוש ב-bullets
+        if (item.bullets) {
+          for (const bullet of item.bullets) {
+            const bulletLower = normalizeText(bullet);
+            const roleLower = normalizeText(role);
+            
+            // בדיקה אם ה-bullet מכיל את התפקיד
+            const isMatch = bulletLower.includes(roleLower) || 
+                (roleLower.includes('רכז') && bulletLower.includes('רכז') && 
+                 (roleLower.includes('מתמטיקה') && bulletLower.includes('מתמטיקה') ||
+                  roleLower.includes('אנגלית') && bulletLower.includes('אנגלית') ||
+                  roleLower.includes('לשון') && bulletLower.includes('לשון') ||
+                  roleLower.includes('עברית') && bulletLower.includes('עברית') ||
+                  roleLower.includes('מת"י') && bulletLower.includes('מת"י') ||
+                  roleLower.includes('מדעים') && bulletLower.includes('מדעים') ||
+                  roleLower.includes('פדגוגית') && bulletLower.includes('פדגוגית')));
+            
+            if (isMatch) {
+              // חילוץ רק המידע הרלוונטי - ננסה למצוא את החלק הרלוונטי ב-bullet
+              // אם ה-bullet ארוך, נחלץ רק את החלק הרלוונטי
+              if (roleLower.includes('רכז')) {
+                // נחפש את החלק שמכיל "רכז" + שם המקצוע
+                const parts = bullet.split(/[,\-–—]/);
+                for (const part of parts) {
+                  const partLower = normalizeText(part);
+                  if (partLower.includes('רכז') && 
+                      (roleLower.includes('מתמטיקה') && partLower.includes('מתמטיקה') ||
+                       roleLower.includes('אנגלית') && partLower.includes('אנגלית') ||
+                       roleLower.includes('לשון') && partLower.includes('לשון') ||
+                       roleLower.includes('עברית') && partLower.includes('עברית') ||
+                       roleLower.includes('מת"י') && partLower.includes('מת"י') ||
+                       roleLower.includes('מדעים') && partLower.includes('מדעים') ||
+                       roleLower.includes('פדגוגית') && partLower.includes('פדגוגית'))) {
+                    return {
+                      answer: part.trim(),
+                      topic: item.topic,
+                      isFocused: true
+                    };
+                  }
+                }
+              }
+              
+              // אם לא מצאנו חלק ספציפי, נחזיר את כל ה-bullet
+              return {
+                answer: bullet,
+                topic: item.topic,
+                isFocused: true
+              };
+            }
+          }
+        }
+        
+        // חיפוש ב-answer (רק אם לא מצאנו ב-bullets)
+        const answerLower = normalizeText(item.answer);
+        const roleLower = normalizeText(role);
+        if (answerLower.includes(roleLower)) {
+          // ננסה למצוא משפט רלוונטי מתוך התשובה
+          const sentences = item.answer.split(/[.!?]/);
+          for (const sentence of sentences) {
+            const sentenceLower = normalizeText(sentence);
+            if (sentenceLower.includes(roleLower)) {
+              return {
+                answer: sentence.trim(),
+                topic: item.topic,
+                isFocused: true
+              };
+            }
+          }
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  // הצעה חכמה למידע נוסף - שלב 3
+  function getSmartSuggestion(topic, specificQuestion) {
+    // אם זו שאלה ספציפית, נציע מידע קשור
+    if (specificQuestion && specificQuestion.type === 'specific-role') {
+      const suggestions = {
+        'רכז מתמטיקה': 'רוצה לשמוע עוד על המורים למתמטיקה או על תוכניות העשרה במתמטיקה?',
+        'רכזת אנגלית': 'רוצה לשמוע עוד על המורים לאנגלית או על תוכניות העשרה באנגלית?',
+        'רכזת לשון': 'רוצה לשמוע עוד על המורים לעברית או על תוכניות העשרה בעברית?',
+        'רכזת מת"י': 'רוצה לשמוע עוד על המורים למת"י או על תוכניות העשרה במת"י?',
+        'רכזת מדעים': 'רוצה לשמוע עוד על המורים למדעים או על תוכניות העשרה במדעים?',
+        'רכזת פדגוגית': 'רוצה לשמוע עוד על הצוות החינוכי או על תמיכה וליווי?',
+        'מנהלת': 'רוצה לשמוע עוד על הצוות החינוכי או על תמיכה וליווי?',
+        'יועצת': 'רוצה לשמוע עוד על תמיכה וליווי או על הצוות החינוכי?',
+        'מחנך': 'רוצה לשמוע עוד על הצוות החינוכי או על תמיכה וליווי?',
+        'מורה מתמטיקה': 'רוצה לשמוע עוד על רכז המתמטיקה או על תוכניות העשרה במתמטיקה?',
+        'מורה אנגלית': 'רוצה לשמוע עוד על רכזת האנגלית או על תוכניות העשרה באנגלית?',
+        'מורה מדעים': 'רוצה לשמוע עוד על רכזת המדעים או על תוכניות העשרה במדעים?'
+      };
+      
+      return suggestions[specificQuestion.role] || null;
+    }
+    
+    // אם זו שאלה כללית, נשתמש ב-CTA הקיים
+    const item = knowledgeBase.find(k => k.topic === topic);
+    return item?.cta || null;
+  }
+
   // אינדקס מהיר לשליפה - מפה של מילות מפתח לנושאים
   const knowledgeIndex = {};
   knowledgeBase.forEach(item => {
@@ -1122,6 +1284,29 @@
       }
     }
 
+    // שלב 4: זיהוי שאלות ספציפיות - קודם כל!
+    const specificQuestion = detectSpecificQuestion(q);
+    if (specificQuestion.type !== 'general') {
+      const focusedAnswer = getFocusedAnswer(specificQuestion, knowledgeBase);
+      if (focusedAnswer) {
+        // עדכון context memory
+        contextMemory.lastTopic = focusedAnswer.topic;
+        if (!contextMemory.recentTopics.includes(focusedAnswer.topic)) {
+          contextMemory.recentTopics.push(focusedAnswer.topic);
+          if (contextMemory.recentTopics.length > 5) {
+            contextMemory.recentTopics.shift();
+          }
+        }
+        return {
+          answer: focusedAnswer.answer,
+          topic: focusedAnswer.topic,
+          persona,
+          isFocused: true,
+          specificQuestion
+        };
+      }
+    }
+
     // חיפוש חכם ראשוני - עם נורמליזציה
     const found = findInKnowledge(lower);
     if (found) {
@@ -1206,13 +1391,21 @@
   }
 
   function craftReply(q) {
-    const { answer, topic, persona } = matchAnswer(q);
+    const matchResult = matchAnswer(q);
+    const { answer, topic, persona, isFocused, specificQuestion } = matchResult;
+    
     if (answer === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
       return answer;
     }
     // אם התשובה ריקה (כמו במקרה של tracks/regulations), לא לבנות תשובה
     if (!answer || answer.trim() === '') {
       return '';
+    }
+    
+    // שלב 5: אם זו תשובה ממוקדת, נחזיר אותה עם הצעה חכמה בלבד
+    if (isFocused) {
+      const suggestion = getSmartSuggestion(topic, specificQuestion);
+      return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}`;
     }
     
     // אם התשובה כבר מכילה את כל המידע, לא צריך להוסיף הרבה
