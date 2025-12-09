@@ -7,7 +7,13 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)](https://yanivmizrachiy.github.io/botteddy/)
 
-## 🌐 **גש לאתר החי:** [https://yanivmizrachiy.github.io/botteddy/](https://yanivmizrachiy.github.io/botteddy/)
+## 🌐 **גש לאתר החי:**
+
+### 🔗 **קישור מלא:**
+[https://yanivmizrachiy.github.io/botteddy/](https://yanivmizrachiy.github.io/botteddy/)
+
+### ⚡ **קישור קצר (אם קיים):**
+[https://yanivmizrachiy.github.io/btd/](https://yanivmizrachiy.github.io/btd/) ← **הקישור הקצר ביותר!**
 
 ---
 
