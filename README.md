@@ -12,8 +12,8 @@
 ### 🔗 **קישור מלא:**
 [https://yanivmizrachiy.github.io/botteddy/](https://yanivmizrachiy.github.io/botteddy/)
 
-### ⚡ **קישור קצר (אם קיים):**
-[https://yanivmizrachiy.github.io/btd/](https://yanivmizrachiy.github.io/btd/) ← **הקישור הקצר ביותר!**
+### ⚡ **קישור קצר:**
+**[https://yanivmizrachiy.github.io/btd/](https://yanivmizrachiy.github.io/btd/)** ← **הקישור הקצר ביותר! ✅ פעיל!**
 
 ---
 
