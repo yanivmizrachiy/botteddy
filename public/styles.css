@@ -326,6 +326,7 @@ main.app-shell {
   font-size: 2.2rem;
   background: linear-gradient(120deg, #0d90b8, #7c4dff, #ff7a59);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 6px 18px rgba(10,95,130,0.28);
 }
