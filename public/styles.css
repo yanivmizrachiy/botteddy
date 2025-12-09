@@ -586,18 +586,7 @@ main.app-shell {
 }
 
 .bubble--bot::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background: linear-gradient(180deg, 
-    rgba(43, 209, 255, 0.8) 0%, 
-    rgba(13, 144, 184, 0.6) 50%, 
-    rgba(43, 209, 255, 0.8) 100%);
-  box-shadow: 0 0 10px rgba(43, 209, 255, 0.5);
-  animation: borderGlow 2s ease-in-out infinite alternate;
+  display: none; /* הסרת האפקט הישן */
 }
 
 @keyframes borderGlow {
@@ -649,21 +638,20 @@ main.app-shell {
 }
 
 .bubble--user {
-  background: linear-gradient(145deg, 
-    #0a5f82 0%, 
-    #0d90b8 50%, 
-    #0a5f82 100%);
-  border-right: 5px solid #38c4a6;
-  margin-left: auto;
+  /* וואטסאפ סגנון - הודעות המשתמש בצד שמאל (RTL) */
   margin-right: 0;
-  max-width: 85%;
+  margin-left: auto;
+  max-width: 75%;
+  border-right: 5px solid #25D366;
+  background: linear-gradient(145deg, 
+    #DCF8C6 0%, 
+    #E5FDD1 50%, 
+    #DCF8C6 100%);
   box-shadow: 
-    0 10px 28px rgba(0, 0, 0, 0.35),
-    0 5px 14px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
-    0 0 15px rgba(56, 196, 166, 0.2);
-  color: #ffffff !important;
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(0, 0, 0, 0.1);
+  color: #000000 !important;
+  border-radius: 18px 18px 4px 18px; /* פינות מעוגלות בצד שמאל, חדות בצד ימין */
 }
 
 .bubble--user p,
@@ -672,27 +660,17 @@ main.app-shell {
 .bubble--user strong,
 .bubble--user em,
 .bubble--user * {
-  color: #ffffff !important;
+  color: #000000 !important;
+  text-shadow: none !important;
 }
 
 .bubble--user::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background: linear-gradient(180deg, 
-    rgba(56, 196, 166, 0.8) 0%, 
-    rgba(13, 144, 184, 0.6) 50%, 
-    rgba(56, 196, 166, 0.8) 100%);
-  box-shadow: 0 0 10px rgba(56, 196, 166, 0.5);
-  animation: borderGlow 2s ease-in-out infinite alternate;
+  display: none; /* הסרת האפקט הישן */
 }
 
 .bubble--user strong {
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #000000 !important;
+  text-shadow: none !important;
 }
 
 /* תפריט מסלולים */
