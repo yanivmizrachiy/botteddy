@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>מדריך פסגת זאב השנון</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="public/styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero" aria-label="לוגו ותיאור תיכון טדי קולק">
+      <div class="hero__logo">
+        <div class="spinning-sphere">
+          <div class="sphere-surface">
+            <div class="sphere-text-main">תיכון טדי קולק</div>
+            <div class="sphere-text-sub">ברוכים הבאים לבוטדי</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero__text">
+        <p class="eyebrow">מדריך פסגת זאב השנון</p>
+        <h1>ברוכים הבאים לבוטדי!</h1>
+        <p class="hero-subline">חטיבת הביניים ע"ש טדי קולק</p>
+        <p class="sub">קהילה של חדשנות בלב פסגת זאב!</p>
+        <p class="sub sub--tagline">שואלים, מקבלים תשובה חכמה, וממשיכים עם שאלה קטנה בחיוך.</p>
+        <button class="cta hero-cta" aria-label="התחל עכשיו" onclick="document.querySelector('.chat').scrollIntoView({behavior:'smooth'});">התחל עכשיו</button>
+      </div>
+    </header>
+
+    <section class="chat">
+      <div class="chat__window" aria-live="polite">
+        <div class="bubble bubble--bot">
+          <p class="bubble__title">היי אלוף/ה! 🌟</p>
+          <p>אני כאן לספר לך על החטיבה בתיכון טדי קולק — בקלילות, עם משחקי מילים וסקרנות.</p>
+          <p class="hint">רוצה להתחיל? בחר נושא או שאל כל דבר!</p>
+        </div>
+        <div class="cards" aria-label="תפריט נושאים ראשוני">
+          <button class="pill pill--day" data-topic="day" onclick="handlePillClick(this, 'day')">📅 מה קורה ביום לימודים?</button>
+          <button class="pill pill--social" data-topic="social" onclick="handlePillClick(this, 'social')">🤝 איך נראים החיים החברתיים?</button>
+          <button class="pill pill--innovation" data-topic="innovation" onclick="handlePillClick(this, 'innovation')">🚀 מה זה חדשנות אצלכם?</button>
+          <button class="pill pill--support" data-topic="support" onclick="handlePillClick(this, 'support')">💬 מי עוזר לי כשיש קושי?</button>
+          <button class="pill pill--tracks" data-topic="tracks" onclick="handlePillClick(this, 'tracks')">⭐ איזה מסלולים מיוחדים יש?</button>
+          <button class="pill pill--location" data-topic="location" onclick="handlePillClick(this, 'location')">📍 איפה נמצא בית הספר?</button>
+          <button class="pill pill--learning-center" data-topic="learning-center" onclick="handlePillClick(this, 'learning-center')">🎓 מה זה מרכז למידה?</button>
+          <button class="pill pill--trips" data-topic="trips" onclick="handlePillClick(this, 'trips')">🏔️ אילו טיולים יש?</button>
+          <button class="pill pill--regulations" data-topic="regulations" onclick="handlePillClick(this, 'regulations')">📚 מה חשוב לדעת על התקנון?</button>
+          <button class="pill pill--staff" data-topic="staff" onclick="handlePillClick(this, 'staff')">👥 מי הצוות שלי?</button>
+          <button class="pill pill--other" data-topic="other" onclick="handlePillClick(this, 'other')">❓ יש לי שאלה אחרת...</button>
+        </div>
+      </div>
+      <div class="chat__input">
+        <input type="text" id="chat-input" placeholder="כתבו שאלה או נושא..." aria-label="שדה כתיבת שאלה" onkeydown="if(event.key==='Enter') handleSendClick()" />
+        <button class="send" aria-label="שלח" onclick="handleSendClick()">שלח</button>
+      </div>
+    </section>
+
+    <footer class="footer-cta" aria-label="קישורים חשובים">
+      <a class="cta cta--facebook" href="https://www.facebook.com/profile.php?id=100039470354740" target="_blank" rel="noopener" aria-label="בואו לבקר בפייסבוק שלנו">
+        <span class="cta-sweep"></span>
+        <span class="cta-icon">📘</span>
+        <span class="cta-text">בואו לבקר בפייסבוק שלנו</span>
+      </a>
+      <a class="cta cta--website" href="https://tedikolek-paz.jlm.org.il/" target="_blank" rel="noopener" aria-label="בקרו אותנו באתר בית הספר">
+        <span class="cta-sweep"></span>
+        <span class="cta-icon">🌐</span>
+        <span class="cta-text">בקרו אותנו באתר בית הספר</span>
+      </a>
+      <div class="footer-brand" aria-label="לוגו תיכון טדי קולק">
+        <img
+          src="public/assets/logo-tedi-kolek.png"
+          alt="תיכון טדי קולק"
+          onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%2260%22 viewBox=%220 0 300 60%22><rect width=%22300%22 height=%2260%22 rx=%2212%22 fill=%22%230d90b8%22/><text x=%2216%22 y=%2239%22 fill=%22white%22 font-family=%22Arial%22 font-size=%2224%22 font-weight=%22700%22>תיכון טדי קולק</text></svg>';"
+        />
+      </div>
+    </footer>
+  </main>
+
+  <script src="public/main.js"></script>
+</body>
+</html>
