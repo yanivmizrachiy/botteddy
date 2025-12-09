@@ -9,6 +9,51 @@
   --muted: #4f6375;
   --border: #c8e3f3;
   --shadow: 0 14px 40px rgba(10, 95, 130, 0.18);
+  
+  /* Mobile-First Variables - Material Design 3 */
+  --touch-target-min: 48px;           /* מינימום 48px לנגישות */
+  --touch-target-comfort: 56px;       /* נוח יותר - 56px */
+  --button-spacing: 8px;              /* רווח מינימלי בין כפתורים */
+  --button-spacing-comfort: 12px;     /* רווח נוח */
+  
+  /* Elevation System - Material Design 3 */
+  --elevation-0: none;
+  --elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --elevation-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  --elevation-3: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  --elevation-4: 0 15px 25px rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.05);
+  --elevation-5: 0 20px 40px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
+  
+  /* Animation Durations */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  
+  /* Animation Easing */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: 10px;
+  
+  /* Mobile Typography */
+  --font-size-mobile-sm: 0.85rem;
+  --font-size-mobile-md: 0.95rem;
+  --font-size-mobile-lg: 1rem;
+  --font-size-mobile-xl: 1.1rem;
+  
+  /* Mobile Spacing */
+  --spacing-mobile-xs: 4px;
+  --spacing-mobile-sm: 8px;
+  --spacing-mobile-md: 12px;
+  --spacing-mobile-lg: 16px;
+  --spacing-mobile-xl: 20px;
 }
 * { box-sizing: border-box; }
 body {
@@ -1423,149 +1468,353 @@ main.app-shell {
   position: relative;
 }
 
-/* Responsive - התאמה למובייל */
+/* ============================================
+   🚀 MOBILE-FIRST BUTTONS UPGRADE - שלב 1-3
+   Material Design 3 + Glassmorphism + Advanced Animations
+   ============================================ */
+
+/* Ripple Effect - Material Design */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.pill::after,
+.send::after,
+.cta::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pill:active::after,
+.send:active::after,
+.cta:active::after {
+  animation: ripple var(--duration-fast) var(--ease-standard);
+}
+
+/* Press Animation - Optimized for Touch */
+@keyframes pressDown {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(0.96) translateY(1px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* GPU Acceleration - Will Change */
+.pill,
+.send,
+.cta,
+.pill-question,
+.track-btn {
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Responsive - התאמה למובייל - UPGRADED VERSION */
 @media (max-width: 768px) {
-  /* כפתורי Pill - קטנים יותר ועדינים יותר */
+  /* כפתורי Pill - Material Design 3 עם Glassmorphism */
   .pill {
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    min-height: 48px;
+    padding: 14px 18px;
+    font-size: var(--font-size-mobile-md);
+    min-height: var(--touch-target-comfort); /* 56px */
     border-radius: 16px;
-    border-width: 1.5px;
-    font-weight: 600;
-    letter-spacing: 0.1px;
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+    border-width: 2px;
+    font-weight: 700;
+    letter-spacing: 0.15px;
+    
+    /* Material Design 3 Elevation */
+    box-shadow: var(--elevation-2);
+    
+    /* Enhanced Glassmorphism */
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.4) 0%, 
+      rgba(255, 255, 255, 0.25) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    /* Smooth Transitions */
+    transition: all var(--duration-normal) var(--ease-standard);
+    
+    /* Touch Optimization */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
-  .pill:hover, .pill:focus-visible {
-    transform: translateY(-1px) scale(1.01);
-    box-shadow: 
-      0 6px 20px rgba(0, 0, 0, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  .pill:hover, 
+  .pill:focus-visible,
+  .pill:active {
+    outline: none;
+    /* Elevated on hover/touch */
+    box-shadow: var(--elevation-3);
+    transform: translateY(-2px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.6);
   }
   
+  .pill:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--elevation-1);
+    transition-duration: var(--duration-fast);
+  }
+  
+  /* Cards Grid - Better Spacing */
   .cards {
-    gap: 6px;
+    gap: var(--button-spacing-comfort); /* 12px */
+    display: grid;
+    grid-template-columns: 1fr;
   }
   
-  /* שדה קלט וכפתור שלח - מותאם לנייד */
+  /* שדה קלט וכפתור שלח - Material Design 3 */
   .chat__input {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+    gap: var(--spacing-mobile-md); /* 12px */
+    padding: var(--spacing-mobile-lg); /* 16px */
     border-radius: 0 0 18px 18px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   
   .chat__input input {
     width: 100%;
     padding: 16px 18px;
-    font-size: 1rem;
-    min-height: 56px;
+    font-size: var(--font-size-mobile-lg); /* 1rem */
+    min-height: var(--touch-target-comfort); /* 56px */
     border-radius: 14px;
-    line-height: 1.4;
+    line-height: 1.5;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #ffffff;
+    transition: all var(--duration-normal) var(--ease-standard);
   }
   
+  .chat__input input:focus {
+    outline: none;
+    border-color: rgba(43, 209, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(43, 209, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .chat__input input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  /* כפתור Send - Material Design 3 FAB Style */
   .send {
     width: 100%;
-    padding: 16px;
-    font-size: 1rem;
-    min-height: 56px;
+    padding: 16px 20px;
+    font-size: var(--font-size-mobile-lg); /* 1rem */
+    min-height: var(--touch-target-comfort); /* 56px */
     border-radius: 14px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    
+    /* Material Design 3 Elevated Button */
+    box-shadow: var(--elevation-3);
+    background: linear-gradient(135deg, #0d90b8, #2bd1ff);
+    border: none;
+    color: #ffffff;
+    
+    /* Smooth Animations */
+    transition: all var(--duration-normal) var(--ease-standard);
+    
+    /* Touch Optimization */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
   }
   
-  .send:hover, .send:focus-visible {
-    transform: translateY(-1px) scale(1.01);
+  .send::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
   }
   
-  /* חלון צ'אט */
+  .send:hover::before,
+  .send:focus-visible::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .send:hover, 
+  .send:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-4);
+  }
+  
+  .send:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--elevation-2);
+    transition-duration: var(--duration-fast);
+  }
+  
+  /* חלון צ'אט - Optimized */
   .chat__window {
-    padding: 16px;
+    padding: var(--spacing-mobile-lg); /* 16px */
   }
   
   .bubble {
     padding: 14px 16px;
     border-radius: 16px;
-    margin-bottom: 12px;
-    font-size: 0.95rem;
+    margin-bottom: var(--spacing-mobile-md); /* 12px */
+    font-size: var(--font-size-mobile-md); /* 0.95rem */
   }
   
   .bubble__title {
-    font-size: 1rem;
+    font-size: var(--font-size-mobile-lg); /* 1rem */
     margin-bottom: 6px;
+  }
+  
+  /* CTA Buttons - Footer */
+  .cta {
+    min-height: var(--touch-target-comfort); /* 56px */
+    padding: 14px 18px;
+    font-size: var(--font-size-mobile-md); /* 0.95rem */
+    border-radius: 14px;
+    box-shadow: var(--elevation-2);
+    transition: all var(--duration-normal) var(--ease-standard);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  .cta:hover,
+  .cta:focus-visible {
+    box-shadow: var(--elevation-3);
+    transform: translateY(-2px);
+  }
+  
+  .cta:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--elevation-1);
+  }
+  
+  .footer-cta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-mobile-md); /* 12px */
   }
 }
 
 @media (max-width: 480px) {
-  /* כפתורים עוד יותר קטנים בטלפונים קטנים */
+  /* כפתורים - Small Phones - מינימום 48px */
   .pill {
-    padding: 10px 14px;
-    font-size: 0.85rem;
-    min-height: 44px;
+    padding: 12px 16px;
+    font-size: var(--font-size-mobile-sm); /* 0.85rem */
+    min-height: var(--touch-target-min); /* 48px - מינימום */
     border-radius: 14px;
+    font-weight: 700;
+  }
+  
+  .pill:active {
+    transform: translateY(0) scale(0.96);
   }
   
   .cards {
-    gap: 5px;
+    gap: var(--button-spacing); /* 8px */
   }
   
-  /* שדה קלט וכפתור שלח - עוד יותר קומפקטי */
+  /* שדה קלט וכפתור שלח - Compact */
   .chat__input {
-    padding: 12px;
-    gap: 10px;
+    padding: var(--spacing-mobile-md); /* 12px */
+    gap: var(--spacing-mobile-sm); /* 8px */
   }
   
   .chat__input input {
     padding: 14px 16px;
-    font-size: 0.95rem;
-    min-height: 52px;
+    font-size: var(--font-size-mobile-md); /* 0.95rem */
+    min-height: var(--touch-target-comfort); /* 56px */
     border-radius: 12px;
   }
   
   .send {
-    padding: 14px;
-    font-size: 0.95rem;
-    min-height: 52px;
+    padding: 14px 18px;
+    font-size: var(--font-size-mobile-md); /* 0.95rem */
+    min-height: var(--touch-target-comfort); /* 56px */
     border-radius: 12px;
   }
   
   .chat__window {
-    padding: 12px;
+    padding: var(--spacing-mobile-md); /* 12px */
   }
   
   .bubble {
     padding: 12px 14px;
-    font-size: 0.9rem;
+    font-size: var(--font-size-mobile-sm); /* 0.9rem */
+    border-radius: 14px;
   }
   
   .cta {
-    padding: 14px 20px;
-    font-size: 0.9rem;
+    padding: 12px 16px;
+    font-size: var(--font-size-mobile-sm); /* 0.9rem */
+    min-height: var(--touch-target-min); /* 48px */
   }
+  
   .cta-icon {
     font-size: 1.2rem;
   }
+  
   .footer-cta {
-    gap: 10px;
+    gap: var(--spacing-mobile-sm); /* 8px */
   }
   
-  /* Hero - קטן יותר */
+  /* Hero - Compact */
   .hero {
-    padding: 16px;
-    gap: 12px;
+    padding: var(--spacing-mobile-lg); /* 16px */
+    gap: var(--spacing-mobile-md); /* 12px */
     border-radius: 20px;
   }
   
   .hero__text h1 {
     font-size: 1.8rem;
+  }
+  
+  /* Pill Questions - Mobile Optimized */
+  .pill-question {
+    min-height: var(--touch-target-min); /* 48px */
+    padding: 12px 16px;
+    font-size: var(--font-size-mobile-sm); /* 0.85rem */
+    border-radius: 12px;
+    box-shadow: var(--elevation-1);
+    transition: all var(--duration-normal) var(--ease-standard);
+  }
+  
+  .pill-question:active {
+    transform: scale(0.97);
+    box-shadow: var(--elevation-0);
   }
 }
 .footer-brand {
