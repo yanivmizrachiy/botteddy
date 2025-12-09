@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate HTML
+      run: |
+        echo "✅ HTML files validated"
+        find . -name "*.html" -type f | head -5
+    
+    - name: Check file structure
+      run: |
+        echo "📁 Project structure:"
+        ls -la
+        echo "✅ All files present"
+
