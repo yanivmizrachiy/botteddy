@@ -1372,9 +1372,15 @@
     }
     const div = document.createElement('div');
     div.className = 'bubble bubble--user';
-    div.innerHTML = `<p><strong>את/ה:</strong> ${text}</p>`;
+    div.innerHTML = `<p>${text}</p>`;
     windowEl.appendChild(div);
-    windowEl.scrollTop = windowEl.scrollHeight;
+    // גלילה חלקה לתחתית
+    setTimeout(() => {
+      windowEl.scrollTo({
+        top: windowEl.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
   }
 
   window.addBubble = function(text) {
@@ -1385,9 +1391,15 @@
     }
     const div = document.createElement('div');
     div.className = 'bubble bubble--bot';
-    div.innerHTML = `<p>${text}</p>`;
+    div.innerHTML = text;
     windowEl.appendChild(div);
-    windowEl.scrollTop = windowEl.scrollHeight;
+    // גלילה חלקה לתחתית
+    setTimeout(() => {
+      windowEl.scrollTo({
+        top: windowEl.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 100);
   }
 
   function matchAnswer(q) {
