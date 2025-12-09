@@ -5,14 +5,14 @@
   // פונקציות גלובליות שיהיו נגישות מה-HTML
   window.handlePillClick = function(btn, topic) {
     console.log('handlePillClick נקראה עם:', topic);
-    if (typeof showPillExpansion === 'function') {
-      showPillExpansion(btn, topic);
+    if (typeof window.showPillExpansion === 'function') {
+      window.showPillExpansion(btn, topic);
     } else {
       console.error('showPillExpansion לא מוגדרת!');
       // נסה שוב אחרי טעינה
       setTimeout(() => {
-        if (typeof showPillExpansion === 'function') {
-          showPillExpansion(btn, topic);
+        if (typeof window.showPillExpansion === 'function') {
+          window.showPillExpansion(btn, topic);
         }
       }, 100);
     }
@@ -1798,8 +1798,8 @@
         console.log(`לחצת על כפתור: ${topic}`);
         const t = this.dataset.topic;
         // כל הכפתורים מובילים להצגת 2 שאלות או תפריט
-        if (typeof showPillExpansion === 'function') {
-          showPillExpansion(this, t);
+        if (typeof window.showPillExpansion === 'function') {
+          window.showPillExpansion(this, t);
         } else {
           console.error('showPillExpansion לא מוגדרת!');
         }
@@ -1818,8 +1818,8 @@
     newSend.addEventListener('click', function(e) {
       e.preventDefault();
       console.log('לחצת על כפתור שלח');
-      if (typeof onSend === 'function') {
-        onSend();
+      if (typeof window.onSend === 'function') {
+        window.onSend();
       } else {
         console.error('onSend לא מוגדרת!');
       }
@@ -1828,11 +1828,15 @@
   
   // חיבור event listener לשדה הקלט
   if (input) {
-    input.addEventListener('keydown', (e) => {
+      input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         console.log('לחצת Enter בשדה הקלט');
-        onSend();
+        if (typeof window.onSend === 'function') {
+          window.onSend();
+        } else {
+          console.error('onSend לא מוגדרת!');
+        }
       }
     });
   }
