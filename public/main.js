@@ -757,6 +757,14 @@
 
   // זיכרון קצר לטון המשך (5 שאלות אחרונות)
   const memory = [];
+  // זיכרון הקשר - נושאים שנשאלו לאחרונה
+  const contextMemory = {
+    recentTopics: [],
+    lastTopic: null,
+    lastPersona: null,
+    questionCount: 0
+  };
+  
   // חידון נוכחי (לאחסון שאלה וחיווי רמזים)
   let currentQuiz = null;
   let hintIndex = 0;
@@ -1072,6 +1080,13 @@
     const normalized = normalizeText(cleaned);
     const lower = normalized.toLowerCase();
     const persona = detectPersona(lower);
+    
+    // עדכון context memory
+    contextMemory.questionCount++;
+    if (contextMemory.lastPersona !== persona) {
+      contextMemory.lastPersona = persona;
+    }
+    
     const safety = safetyFilter(q);
     if (safety) return { answer: safety, topic: 'safe', persona };
 
@@ -1106,7 +1121,17 @@
 
     // חיפוש חכם ראשוני - עם נורמליזציה
     const found = findInKnowledge(lower);
-    if (found) return { answer: found.answer, topic: found.topic, persona };
+    if (found) {
+      // עדכון context memory
+      contextMemory.lastTopic = found.topic;
+      if (!contextMemory.recentTopics.includes(found.topic)) {
+        contextMemory.recentTopics.push(found.topic);
+        if (contextMemory.recentTopics.length > 5) {
+          contextMemory.recentTopics.shift();
+        }
+      }
+      return { answer: found.answer, topic: found.topic, persona };
+    }
 
     // בדיקות מיוחדות משופרות - עם נורמליזציה
     const normalizedLower = normalizeText(lower);
@@ -1133,7 +1158,21 @@
       }
       return { answer: 'שעות הלימוד מתחילות ב-08:00 (עם מעגל שיח) או ב-08:20 (בלי מעגל שיח). היום מסתיים הכי מאוחר ב-15:30. לא נשארים עד הערב!', topic: 'schedule', persona };
     }
-    if (lower.includes('בית ספר') || lower.includes('חטיבה') || lower.includes('חטיבת') || lower.includes('טדי') || lower.includes('קולק')) {
+    // בדיקה משופרת - אם שואלים על בית הספר/חטיבה באופן כללי
+    if (normalizedLower.includes('בית ספר') || normalizedLower.includes('חטיבה') || normalizedLower.includes('חטיבת') || 
+        normalizedLower.includes('טדי') || normalizedLower.includes('קולק') || 
+        (normalizedLower.includes('מה') && (normalizedLower.includes('בית ספר') || normalizedLower.includes('חטיבה')))) {
+      // אם יש הקשר קודם, נסה לכוון לנושא הקודם
+      if (contextMemory.lastTopic && contextMemory.recentTopics.length > 0) {
+        const lastTopicItem = knowledgeBase.find(k => k.topic === contextMemory.lastTopic);
+        if (lastTopicItem) {
+          return { 
+            answer: `${quickCatalog}<br><br>אגב, קודם דיברנו על ${lastTopicItem.topic === 'schedule' ? 'שעות הלימוד' : lastTopicItem.topic === 'location' ? 'מיקום בית הספר' : lastTopicItem.topic === 'social' ? 'החיים החברתיים' : lastTopicItem.topic === 'support' ? 'תמיכה וליווי' : lastTopicItem.topic === 'innovation' ? 'חדשנות' : lastTopicItem.topic === 'principal' ? 'נהלת' : 'נושא זה'}. רוצה לשמוע עוד על זה או על משהו אחר?`, 
+            topic: 'catalog', 
+            persona 
+          };
+        }
+      }
       return { answer: quickCatalog, topic: 'catalog', persona };
     }
     if (lower === 'כן' || lower === 'yes' || lower.includes('יאללה') || lower.includes('סבבה') || lower.includes('קדימה')) {
