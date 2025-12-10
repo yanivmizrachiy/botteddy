@@ -1390,6 +1390,85 @@
     return followUps[Math.floor(Math.random() * followUps.length)];
   }
 
+  // הצעת שני נושאים קרובים - כדי להרחיב רק אם המשתמש רוצה
+  function getSuggestions(topic) {
+    const labels = {
+      principal: 'הצוות החינוכי',
+      staff: 'צוות שכבה ומורים',
+      'subject-teachers': 'מורים מקצועיים',
+      'grade-7-staff': 'צוות שכבת ז׳',
+      'grade-8-staff': 'צוות שכבת ח׳',
+      'grade-9-staff': 'צוות שכבת ט׳',
+      support: 'תמיכה וליווי',
+      therapists: 'תרפיסטים',
+      'advancing-class': 'כיתה מקדמת',
+      schedule: 'שעות ותלמידים',
+      location: 'מיקום ובית הספר',
+      trips: 'טיולים שנתיים',
+      'lail-hagesharim': 'סיפור ליל הגשרים',
+      'galil-area': 'גליל מערבי ונחל כזיב',
+      regulations: 'תקנון וכללים',
+      uniform: 'תלבושת',
+      behavior: 'התנהגות',
+      consequences: 'דרכי תגובה',
+      attendance: 'נוכחות ואיחורים',
+      exams: 'מבחנים',
+      laptop: 'מחשב נייד',
+      phone: 'טלפונים',
+      innovation: 'חדשנות',
+      tracks: 'מסלולים מיוחדים',
+      memram: 'ממר״ם',
+      'shaar-refua': 'שער לרפואה',
+      gsharim: 'גשרים',
+      music: 'מוזיקה',
+      'learning-center': 'מרכז למידה',
+      facilities: 'מתקנים',
+      cafeteria: 'קפיטריה',
+      vision: 'חזון וערכים',
+      social: 'חיים חברתיים'
+    };
+
+    const suggestionsMap = {
+      principal: ['staff', 'support'],
+      staff: ['subject-teachers', 'support'],
+      'subject-teachers': ['staff', 'support'],
+      support: ['therapists', 'advancing-class'],
+      therapists: ['support', 'advancing-class'],
+      'advancing-class': ['support', 'therapists'],
+      schedule: ['attendance', 'regulations'],
+      attendance: ['schedule', 'exams'],
+      exams: ['regulations', 'attendance'],
+      location: ['trips', 'facilities'],
+      trips: ['lail-hagesharim', 'galil-area'],
+      'lail-hagesharim': ['trips', 'galil-area'],
+      'galil-area': ['trips', 'lail-hagesharim'],
+      regulations: ['uniform', 'behavior'],
+      uniform: ['regulations', 'behavior'],
+      behavior: ['consequences', 'regulations'],
+      consequences: ['behavior', 'regulations'],
+      laptop: ['phone', 'exams'],
+      phone: ['laptop', 'regulations'],
+      innovation: ['tracks', 'digital-teaching'],
+      tracks: ['memram', 'shaar-refua'],
+      memram: ['innovation', 'digital-teaching'],
+      'shaar-refua': ['gsharim', 'support'],
+      gsharim: ['innovation', 'digital-teaching'],
+      music: ['tracks', 'social'],
+      'learning-center': ['support', 'tracks'],
+      facilities: ['cafeteria', 'learning-center'],
+      cafeteria: ['facilities', 'schedule'],
+      vision: ['innovation', 'social'],
+      social: ['support', 'activities'],
+      default: ['location', 'schedule']
+    };
+
+    const picks = suggestionsMap[topic] || suggestionsMap.default;
+    const [a, b] = picks;
+    const labelA = labels[a] || a;
+    const labelB = labels[b] || b;
+    return `אפשר גם לספר על: ${labelA} או ${labelB}?`;
+  }
+
   window.addUserBubble = function(text) {
     const windowEl = document.querySelector('.chat__window');
     if (!windowEl) {
@@ -1596,7 +1675,8 @@
     // שלב 5: אם זו תשובה ממוקדת, נחזיר אותה עם הצעה חכמה בלבד
     if (isFocused) {
       const suggestion = getSmartSuggestion(topic, specificQuestion);
-      return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}`;
+      const more = getSuggestions(topic);
+      return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
     }
     
     // אם התשובה כבר מכילה את כל המידע, לא צריך להוסיף הרבה
@@ -1623,10 +1703,12 @@
     
     // בניית התשובה - אם התשובה ארוכה, פשוט להחזיר אותה עם follow-up
     if (isLongAnswer) {
-      return `${toBullets(answer)}<br><br>${follow}`;
+      const more = getSuggestions(topic);
+      return `${toBullets(answer)}<br><br>${follow}<br><br>🔎 ${more}`;
     }
     
-    return `${greet} ${emojiSet}<br>${toBullets(answer)}<br>${spice}<br>${personaLine}<br>${follow}`;
+    const more = getSuggestions(topic);
+    return `${greet} ${emojiSet}<br>${toBullets(answer)}<br>${spice}<br>${personaLine}<br>${follow}<br><br>🔎 ${more}`;
   }
 
   window.onSend = function() {
