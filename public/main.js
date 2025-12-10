@@ -18,20 +18,150 @@
     }
   };
   
+  // הגדרת onSend מיד - לפני handleSendClick
+  window.onSend = function() {
+    try {
+      // קבלת input ישירות מה-DOM
+      const inputEl = document.getElementById('chat-input') || document.querySelector('.chat__input input');
+      if (!inputEl) {
+        console.error('input לא נמצא!');
+        alert('שגיאה: שדה הקלט לא נמצא. נא לרענן את הדף.');
+        return;
+      }
+      const q = inputEl.value.trim();
+      if (!q) {
+        console.log('השאלה ריקה');
+        return;
+      }
+      console.log('שולח שאלה:', q);
+      
+      // הוספת בועת משתמש
+      try {
+        if (typeof window.addUserBubble === 'function') {
+          window.addUserBubble(q);
+        } else {
+          // fallback - יצירת בועה ישירות
+          const windowEl = document.querySelector('.chat__window');
+          if (windowEl) {
+            const div = document.createElement('div');
+            div.className = 'bubble bubble--user';
+            const p = document.createElement('p');
+            p.textContent = q;
+            p.style.color = '#000000';
+            div.appendChild(p);
+            windowEl.appendChild(div);
+            windowEl.scrollTo({ top: windowEl.scrollHeight, behavior: 'smooth' });
+          }
+        }
+      } catch (err) {
+        console.error('שגיאה בהוספת בועת משתמש:', err);
+      }
+      
+      // בדיקה אם השאלה היא על tracks או regulations - הצגת תפריט
+      const lower = q.toLowerCase();
+      if (lower.includes('מסלול') || lower.includes('tracks') || lower.includes('ממר"ם') || lower.includes('שער לרפואה') || lower.includes('גשרים') || lower.includes('מוזיקה') || lower.includes('מצטיינים')) {
+        try {
+          if (typeof window.matchAnswer === 'function') {
+            const matchResult = window.matchAnswer(q);
+            const { topic } = matchResult || {};
+            if (topic === 'tracks' || lower.includes('מסלול')) {
+              if (typeof window.showTracksMenu === 'function') {
+                window.showTracksMenu();
+              }
+              inputEl.value = '';
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('שגיאה בבדיקת tracks:', err);
+        }
+      }
+      if (lower.includes('תקנון') || lower.includes('regulations') || lower.includes('כללים') || lower.includes('חוקים')) {
+        try {
+          if (typeof window.matchAnswer === 'function') {
+            const matchResult = window.matchAnswer(q);
+            const { topic } = matchResult || {};
+            if (topic === 'regulations' || lower.includes('תקנון')) {
+              if (typeof window.showRegulationsMenu === 'function') {
+                window.showRegulationsMenu();
+              }
+              inputEl.value = '';
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('שגיאה בבדיקת regulations:', err);
+        }
+      }
+      
+      // יצירת תשובה
+      let reply = '';
+      try {
+        if (typeof window.craftReply === 'function') {
+          reply = window.craftReply(q);
+          console.log('תשובה:', reply);
+        } else {
+          reply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
+        }
+      } catch (err) {
+        console.error('שגיאה ב-craftReply:', err);
+        reply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
+      }
+      
+      // הוספת בועת תשובה
+      if (reply && reply.trim() !== '') {
+        try {
+          if (typeof window.addBubble === 'function') {
+            window.addBubble(reply);
+          } else {
+            // fallback - יצירת בועה ישירות
+            const windowEl = document.querySelector('.chat__window');
+            if (windowEl) {
+              const div = document.createElement('div');
+              div.className = 'bubble bubble--bot';
+              div.innerHTML = reply;
+              windowEl.appendChild(div);
+              windowEl.scrollTo({ top: windowEl.scrollHeight, behavior: 'smooth' });
+            }
+          }
+        } catch (err) {
+          console.error('שגיאה בהוספת בועת תשובה:', err);
+        }
+      } else {
+        console.warn('לא התקבלה תשובה!');
+        const defaultReply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
+        try {
+          if (typeof window.addBubble === 'function') {
+            window.addBubble(defaultReply);
+          } else {
+            const windowEl = document.querySelector('.chat__window');
+            if (windowEl) {
+              const div = document.createElement('div');
+              div.className = 'bubble bubble--bot';
+              div.innerHTML = defaultReply;
+              windowEl.appendChild(div);
+              windowEl.scrollTo({ top: windowEl.scrollHeight, behavior: 'smooth' });
+            }
+          }
+        } catch (err) {
+          console.error('שגיאה בהוספת תשובה ברירת מחדל:', err);
+        }
+      }
+      
+      inputEl.value = '';
+    } catch (err) {
+      console.error('שגיאה כללית ב-onSend:', err);
+      alert('שגיאה בשליחת השאלה. נא לרענן את הדף.');
+    }
+  };
+
   window.handleSendClick = function() {
     console.log('handleSendClick נקראה');
     if (typeof window.onSend === 'function') {
       window.onSend();
     } else {
       console.error('onSend לא מוגדרת!');
-      // נסה שוב אחרי טעינה
-      setTimeout(() => {
-        if (typeof window.onSend === 'function') {
-          window.onSend();
-        } else {
-          console.error('onSend עדיין לא מוגדרת אחרי המתנה!');
-        }
-      }, 100);
+      alert('שגיאה: הפונקציה onSend לא מוגדרת. נא לרענן את הדף.');
     }
   };
   
