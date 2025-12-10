@@ -2282,7 +2282,7 @@
   }
 
   // פונקציה שמחזירה 2 הצעות לנושאים נוספים
-  function getTwoSuggestions(topic, specificQuestion) {
+  window.getTwoSuggestions = function getTwoSuggestions(topic, specificQuestion) {
     const labels = {
       principal: 'הצוות החינוכי',
       staff: 'צוות שכבה ומורים',
