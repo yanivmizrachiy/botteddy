@@ -2275,7 +2275,7 @@
     }
     
     // קבלת 2 הצעות לנושאים נוספים
-    const suggestions = getTwoSuggestions(topic, specificQuestion);
+    const suggestions = window.getTwoSuggestions ? window.getTwoSuggestions(topic, specificQuestion) : (typeof getTwoSuggestions === 'function' ? getTwoSuggestions(topic, specificQuestion) : '');
     
     // החזרת תשובה קצרה + 2 הצעות
     return `${shortAnswer}<br><br>💡 רוצה לשמוע עוד? ${suggestions}`;
