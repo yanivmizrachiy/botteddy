@@ -425,7 +425,8 @@ main.app-shell {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  min-height: 60vh;
+  min-height: 70vh;
+  max-height: 85vh;
   border: 2px solid rgba(43, 209, 255, 0.3);
   position: relative;
   overflow: hidden;
