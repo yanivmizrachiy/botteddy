@@ -1776,6 +1776,8 @@
       return null;
     }
     
+    // אופטימיזציה של DOM - שימוש ב-DocumentFragment - שלב 1
+    const fragment = document.createDocumentFragment();
     const div = document.createElement('div');
     div.className = `bubble bubble--${isUser ? 'user' : 'bot'}`;
     
@@ -1791,15 +1793,19 @@
       div.innerHTML = text;
     }
     
-    windowEl.appendChild(div);
+    fragment.appendChild(div);
+    windowEl.appendChild(fragment);
     
-    // גלילה חלקה לתחתית
-    setTimeout(() => {
+    // גלילה חלקה לתחתית - debounce - שלב 1
+    if (window.scrollTimeout) {
+      clearTimeout(window.scrollTimeout);
+    }
+    window.scrollTimeout = setTimeout(() => {
       windowEl.scrollTo({
         top: windowEl.scrollHeight,
         behavior: 'smooth'
       });
-    }, 100);
+    }, 50);
     
     return div;
   }
