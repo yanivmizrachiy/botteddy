@@ -1423,22 +1423,10 @@
                 }
               }
               
-              // אם לא מצאנו חלק ספציפי, נחזיר את כל ה-bullet (אבל זה לא אידיאלי)
-              // ננסה לקצר את ה-bullet אם אפשר
-              if (bullet.length > 100) {
-                // ננסה למצוא את החלק הרלוונטי בלבד
-                const relevantPart = bullet.match(new RegExp(`[^.]*${role.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^.]*`, 'i'));
-                if (relevantPart) {
-                  return {
-                    answer: relevantPart[0].trim(),
-                    topic: item.topic,
-                    isFocused: true
-                  };
-                }
-              }
-              
+              // אם לא מצאנו חלק ספציפי, נקצר את ה-bullet ל-1-2 משפטים
+              const shortenedBullet = shortenAnswer(bullet, 2);
               return {
-                answer: bullet,
+                answer: shortenedBullet,
                 topic: item.topic,
                 isFocused: true
               };
@@ -1454,15 +1442,9 @@
           for (const sentence of sentences) {
             const sentenceLower = normalizeText(sentence);
             if (sentenceLower.includes(roleLower)) {
-              // ננסה לקצר את המשפט אם הוא ארוך מדי
+              // קיצור המשפט ל-1-2 משפטים
               let focusedSentence = sentence.trim();
-              if (focusedSentence.length > 150) {
-                // ננסה למצוא את החלק הרלוונטי בלבד
-                const relevantPart = sentence.match(new RegExp(`[^.]*${role.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^.]*`, 'i'));
-                if (relevantPart) {
-                  focusedSentence = relevantPart[0].trim();
-                }
-              }
+              focusedSentence = shortenAnswer(focusedSentence, 2);
               return {
                 answer: focusedSentence,
                 topic: item.topic,
