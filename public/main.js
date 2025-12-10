@@ -1685,6 +1685,20 @@
     return followUps[Math.floor(Math.random() * followUps.length)];
   }
 
+  // קיצור תשובה ל-1-2 משפטים - ממוקד במה שנשאל
+  function shortenAnswer(answer, maxSentences = 2) {
+    if (!answer || answer.length < 100) return answer; // אם התשובה כבר קצרה, נחזיר אותה
+    
+    // חלוקה למשפטים לפי נקודות, סימני שאלה וסימני קריאה
+    const sentences = answer.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
+    
+    if (sentences.length <= maxSentences) return answer; // אם יש כבר 2 משפטים או פחות, נחזיר את התשובה
+    
+    // נחזיר רק את המשפטים הראשונים
+    const shortened = sentences.slice(0, maxSentences).join('. ') + '.';
+    return shortened;
+  }
+
   // הצעת שני נושאים קרובים - כדי להרחיב רק אם המשתמש רוצה
   function getSuggestions(topic) {
     const labels = {
@@ -2088,79 +2102,137 @@
       return answer || '';
     }
     
-    // התאמת טון לפי רגש - שלב 2
-    let adjustedAnswer = answer;
-    if (sentiment) {
-      if (sentiment.hasConcern) {
-        adjustedAnswer = `אני מבין את החשש שלך. ${answer} אבל אל דאגה - יש לנו תמיכה מלאה! 💪`;
-      } else if (sentiment.hasExcitement) {
-        adjustedAnswer = `${answer} זה באמת מגניב! 🎉`;
-      } else if (sentiment.sentiment === 'positive') {
-        adjustedAnswer = `${answer} מעולה! 😊`;
-      }
+    // קיצור התשובה ל-1-2 משפטים - ממוקד במה שנשאל
+    let shortAnswer = shortenAnswer(answer, 2);
+    
+    // התאמת טון לפי רגש - רק אם יש רגש חזק
+    if (sentiment && sentiment.hasConcern) {
+      shortAnswer = `אני מבין את החשש שלך. ${shortAnswer} אבל אל דאגה - יש לנו תמיכה מלאה! 💪`;
+    } else if (sentiment && sentiment.hasExcitement) {
+      shortAnswer = `${shortAnswer} זה באמת מגניב! 🎉`;
     }
     
-    // תשובות ממוקדות - קצרות וישירות
-    if (isFocused) {
-      const suggestion = getSmartSuggestion(topic, specificQuestion);
-      const more = getSuggestions(topic);
-      return `${adjustedAnswer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
-    }
+    // קבלת 2 הצעות לנושאים נוספים
+    const suggestions = getTwoSuggestions(topic, specificQuestion);
     
-    const answerLength = adjustedAnswer.length;
-    const more = getSuggestions(topic);
-    
-    // תשובות ארוכות מאוד - רק התשובה + נושאים נוספים
-    if (answerLength > 400) {
-      return `${adjustedAnswer}<br><br>🔎 ${more}`;
-    }
-    
-    // תשובות ארוכות - רק התשובה + follow-up
-    if (answerLength > 200) {
-      const follow = selectFollowUp(topic);
-      return `${adjustedAnswer}<br><br>${follow}<br><br>🔎 ${more}`;
-    }
-    
-    // תשובות קצרות - עם greeting וכו'
-    const greet = greetings[Math.floor(Math.random() * greetings.length)];
-    const follow = selectFollowUp(topic);
-    
-    // תשובות מותאמות אישית לפי persona - שלב 3
-    const personaAnswers = {
-      student: {
-        greeting: 'היי! אני כאן לעזור לך להכיר את החטיבה!',
-        tone: 'קליל, ידידותי, עם אימוג\'ים',
-        focus: 'חברים, פעילויות, כיף'
-      },
-      parent: {
-        greeting: 'שלום! אני כאן לעזור לכם להכיר את החטיבה.',
-        tone: 'מקצועי, מפורט, מרגיע',
-        focus: 'ביטחון, תמיכה, ליווי, הישגים'
-      },
-      teacher: {
-        greeting: 'שלום! אני כאן לעזור לך להכיר את החטיבה.',
-        tone: 'מקצועי, מפורט, טכני',
-        focus: 'פדגוגיה, מסלולים, חדשנות'
-      }
+    // החזרת תשובה קצרה + 2 הצעות
+    return `${shortAnswer}<br><br>💡 רוצה לשמוע עוד? ${suggestions}`;
+  }
+
+  // פונקציה שמחזירה 2 הצעות לנושאים נוספים
+  function getTwoSuggestions(topic, specificQuestion) {
+    const labels = {
+      principal: 'הצוות החינוכי',
+      staff: 'צוות שכבה ומורים',
+      'subject-teachers': 'מורים מקצועיים',
+      'grade-7-staff': 'צוות שכבת ז׳',
+      'grade-8-staff': 'צוות שכבת ח׳',
+      'grade-9-staff': 'צוות שכבת ט׳',
+      support: 'תמיכה וליווי',
+      therapists: 'תרפיסטים',
+      'advancing-class': 'כיתה מקדמת',
+      schedule: 'שעות ותלמידים',
+      location: 'מיקום ובית הספר',
+      trips: 'טיולים שנתיים',
+      'lail-hagesharim': 'סיפור ליל הגשרים',
+      'galil-area': 'גליל מערבי ונחל כזיב',
+      regulations: 'תקנון וכללים',
+      uniform: 'תלבושת',
+      behavior: 'התנהגות',
+      consequences: 'דרכי תגובה',
+      attendance: 'נוכחות ואיחורים',
+      exams: 'מבחנים',
+      laptop: 'מחשב נייד',
+      phone: 'טלפונים',
+      innovation: 'חדשנות',
+      tracks: 'מסלולים מיוחדים',
+      memram: 'ממר״ם',
+      'shaar-refua': 'שער לרפואה',
+      gsharim: 'גשרים',
+      music: 'מוזיקה',
+      'learning-center': 'מרכז למידה',
+      facilities: 'מתקנים',
+      cafeteria: 'קפיטריה',
+      vision: 'חזון וערכים',
+      social: 'חיים חברתיים',
+      'class-count': 'מספר תלמידים',
+      'physical-layout': 'ארגון פיסי'
     };
-    
-    const personaConfig = personaAnswers[persona] || personaAnswers.student;
-    
-    // תשובות קצרות מאוד - עם spice ו-persona
-    if (answerLength < 100) {
-      const spice = witty[Math.floor(Math.random() * witty.length)];
-      const personaLine = persona === 'parent'
-        ? 'כהורה, ברור שחשוב לך הביטחון והליווי – אני כאן עם תשובות קצרות וברורות.'
-        : persona === 'teacher'
-          ? 'כמורה, תראה שהמסלולים והחדשנות בנויים לתלמידים סקרנים.'
-          : persona === 'principal'
-            ? 'כמנהל/ת, תשמח/י לדעת שהמצויינות והחדשנות מובילים את החטיבה.'
-            : '';
-      return `${personaConfig.greeting}<br>${adjustedAnswer}${spice ? '<br>' + spice : ''}${personaLine ? '<br>' + personaLine : ''}<br><br>${follow}<br><br>🔎 ${more}`;
+
+    const suggestionsMap = {
+      principal: ['staff', 'support'],
+      staff: ['subject-teachers', 'support'],
+      'subject-teachers': ['staff', 'support'],
+      support: ['therapists', 'advancing-class'],
+      therapists: ['support', 'advancing-class'],
+      'advancing-class': ['support', 'therapists'],
+      schedule: ['attendance', 'regulations'],
+      attendance: ['schedule', 'exams'],
+      exams: ['regulations', 'attendance'],
+      location: ['trips', 'facilities'],
+      trips: ['lail-hagesharim', 'galil-area'],
+      'lail-hagesharim': ['trips', 'galil-area'],
+      'galil-area': ['trips', 'lail-hagesharim'],
+      regulations: ['uniform', 'behavior'],
+      uniform: ['regulations', 'behavior'],
+      behavior: ['consequences', 'regulations'],
+      consequences: ['behavior', 'regulations'],
+      laptop: ['phone', 'exams'],
+      phone: ['laptop', 'regulations'],
+      innovation: ['tracks', 'digital-teaching'],
+      tracks: ['memram', 'shaar-refua'],
+      memram: ['innovation', 'digital-teaching'],
+      'shaar-refua': ['gsharim', 'support'],
+      gsharim: ['innovation', 'digital-teaching'],
+      music: ['tracks', 'social'],
+      'learning-center': ['support', 'tracks'],
+      facilities: ['cafeteria', 'learning-center'],
+      cafeteria: ['facilities', 'schedule'],
+      vision: ['regulations', 'social'],
+      social: ['trips', 'bonding-days'],
+      'class-count': ['schedule', 'physical-layout'],
+      'physical-layout': ['facilities', 'class-count']
+    };
+
+    // אם יש שאלה ספציפית, נציע נושאים קשורים
+    if (specificQuestion && specificQuestion.type === 'specific-role') {
+      const roleSuggestions = {
+        'רכז מתמטיקה': ['תוכניות העשרה במתמטיקה', 'מורים למתמטיקה'],
+        'רכזת אנגלית': ['תוכניות העשרה באנגלית', 'מורים לאנגלית'],
+        'רכזת לשון': ['תוכניות העשרה בעברית', 'מורים לעברית'],
+        'רכזת מת"י': ['תוכניות העשרה במת"י', 'מורים למת"י'],
+        'רכזת מדעים': ['תוכניות העשרה במדעים', 'מורים למדעים'],
+        'מנהלת': ['הצוות החינוכי', 'תמיכה וליווי'],
+        'יועצת': ['תמיכה וליווי', 'הצוות החינוכי']
+      };
+      const suggestions = roleSuggestions[specificQuestion.role];
+      if (suggestions) {
+        return `${suggestions[0]} או ${suggestions[1]}?`;
+      }
     }
-    
-    // תשובות בינוניות
-    return `${greet}<br>${adjustedAnswer}<br><br>${follow}<br><br>🔎 ${more}`;
+
+    // הצעות לפי נושא
+    const topicSuggestions = suggestionsMap[topic];
+    if (topicSuggestions && topicSuggestions.length >= 2) {
+      const label1 = labels[topicSuggestions[0]] || topicSuggestions[0];
+      const label2 = labels[topicSuggestions[1]] || topicSuggestions[1];
+      return `${label1} או ${label2}?`;
+    }
+
+    // הצעות כלליות אם אין הצעות ספציפיות
+    const generalSuggestions = [
+      'חדשנות ומסלולים',
+      'תמיכה וליווי',
+      'שעות ותלמידים',
+      'חיים חברתיים',
+      'תקנון וכללים'
+    ];
+    const random1 = generalSuggestions[Math.floor(Math.random() * generalSuggestions.length)];
+    let random2 = generalSuggestions[Math.floor(Math.random() * generalSuggestions.length)];
+    while (random2 === random1) {
+      random2 = generalSuggestions[Math.floor(Math.random() * generalSuggestions.length)];
+    }
+    return `${random1} או ${random2}?`;
   }
 
   window.onSend = function() {
