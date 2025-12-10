@@ -1881,6 +1881,7 @@ main.app-shell {
   .chat__input {
     padding: var(--spacing-mobile-md); /* 12px */
     gap: var(--spacing-mobile-sm); /* 8px */
+    flex-shrink: 0;
   }
   
   .chat__input input {
