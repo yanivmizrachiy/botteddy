@@ -1891,7 +1891,7 @@
   }
 
   // פונקציה משותפת ליצירת בועות - מונעת כפילות
-  function createBubble(text, isUser = false) {
+  window.createBubble = function createBubble(text, isUser = false) {
     const windowEl = document.querySelector('.chat__window');
     if (!windowEl) {
       console.error('chat__window לא נמצא!');
@@ -2019,7 +2019,7 @@
     return null;
   }
 
-  function matchAnswer(q) {
+  window.matchAnswer = function matchAnswer(q) {
     // תיקון שגיאות כתיב - שלב 4
     const fixedQ = fixTypos(q);
     const cleaned = fixedQ.trim();
@@ -2206,7 +2206,7 @@
     return { answer: 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.', topic: 'fallback', persona };
   }
 
-  function craftReply(q) {
+  window.craftReply = function craftReply(q) {
     const matchResult = matchAnswer(q);
     const { answer, topic, persona, isFocused, specificQuestion, sentiment, intent } = matchResult;
     
