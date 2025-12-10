@@ -2235,7 +2235,9 @@
       
       // הוספת בועת משתמש
       try {
-        if (!window.addUserBubble || !window.addUserBubble(q)) {
+        if (typeof window.addUserBubble === 'function') {
+          window.addUserBubble(q);
+        } else {
           createBubble(q, true); // fallback
         }
       } catch (err) {
@@ -2293,7 +2295,9 @@
       // הוספת בועת תשובה
       if (reply && reply.trim() !== '') {
         try {
-          if (!window.addBubble || !window.addBubble(reply)) {
+          if (typeof window.addBubble === 'function') {
+            window.addBubble(reply);
+          } else {
             createBubble(reply, false); // fallback
           }
         } catch (err) {
@@ -2304,7 +2308,9 @@
         console.warn('לא התקבלה תשובה!');
         const defaultReply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
         try {
-          if (!window.addBubble || !window.addBubble(defaultReply)) {
+          if (typeof window.addBubble === 'function') {
+            window.addBubble(defaultReply);
+          } else {
             createBubble(defaultReply, false); // fallback
           }
         } catch (err) {
