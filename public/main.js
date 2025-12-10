@@ -1265,6 +1265,20 @@
   }
 
   // תשובות ממוקדות - שלב 2 (שיפור דיוק מחמיר)
+  // קיצור תשובה ל-1-2 משפטים - ממוקד במה שנשאל
+  function shortenAnswer(answer, maxSentences = 2) {
+    if (!answer || answer.length < 100) return answer; // אם התשובה כבר קצרה, נחזיר אותה
+    
+    // חלוקה למשפטים לפי נקודות, סימני שאלה וסימני קריאה
+    const sentences = answer.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
+    
+    if (sentences.length <= maxSentences) return answer; // אם יש כבר 2 משפטים או פחות, נחזיר את התשובה
+    
+    // נחזיר רק את המשפטים הראשונים
+    const shortened = sentences.slice(0, maxSentences).join('. ') + '.';
+    return shortened;
+  }
+
   function getFocusedAnswer(specificQuestion, knowledgeBase) {
     const { type, role, question } = specificQuestion;
     
@@ -1665,20 +1679,6 @@
     if (topic === 'enrichment-programs') return 'רוצה לשמוע על מסלולי מצטיינים או על תמיכה וליווי?';
     if (topic === 'digital-teaching') return 'רוצה לשמוע על חדשנות ויצירתיות או על המסלולים המיוחדים?';
     return followUps[Math.floor(Math.random() * followUps.length)];
-  }
-
-  // קיצור תשובה ל-1-2 משפטים - ממוקד במה שנשאל
-  function shortenAnswer(answer, maxSentences = 2) {
-    if (!answer || answer.length < 100) return answer; // אם התשובה כבר קצרה, נחזיר אותה
-    
-    // חלוקה למשפטים לפי נקודות, סימני שאלה וסימני קריאה
-    const sentences = answer.split(/[.!?]\s+/).filter(s => s.trim().length > 0);
-    
-    if (sentences.length <= maxSentences) return answer; // אם יש כבר 2 משפטים או פחות, נחזיר את התשובה
-    
-    // נחזיר רק את המשפטים הראשונים
-    const shortened = sentences.slice(0, maxSentences).join('. ') + '.';
-    return shortened;
   }
 
   // הצעת שני נושאים קרובים - כדי להרחיב רק אם המשתמש רוצה
