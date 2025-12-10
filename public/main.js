@@ -1525,26 +1525,35 @@
     return `אפשר גם לספר על: ${labelA} או ${labelB}?`;
   }
 
-  window.addUserBubble = function(text) {
+  // פונקציה משותפת ליצירת בועות - מונעת כפילות
+  function createBubble(text, isUser = false) {
     const windowEl = document.querySelector('.chat__window');
     if (!windowEl) {
       console.error('chat__window לא נמצא!');
-      return;
+      return null;
     }
     if (!text || text.trim() === '') {
-      console.warn('טקסט ריק - לא מוסיף בועה');
-      return;
+      if (isUser) console.warn('טקסט ריק - לא מוסיף בועה');
+      return null;
     }
+    
     const div = document.createElement('div');
-    div.className = 'bubble bubble--user';
-    const p = document.createElement('p');
-    p.textContent = text; // שימוש ב-textContent במקום innerHTML כדי למנוע בעיות
-    p.style.color = '#000000';
-    p.style.visibility = 'visible';
-    p.style.opacity = '1';
-    p.style.display = 'block';
-    div.appendChild(p);
+    div.className = `bubble bubble--${isUser ? 'user' : 'bot'}`;
+    
+    if (isUser) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      p.style.color = '#000000';
+      p.style.visibility = 'visible';
+      p.style.opacity = '1';
+      p.style.display = 'block';
+      div.appendChild(p);
+    } else {
+      div.innerHTML = text;
+    }
+    
     windowEl.appendChild(div);
+    
     // גלילה חלקה לתחתית
     setTimeout(() => {
       windowEl.scrollTo({
@@ -1552,25 +1561,16 @@
         behavior: 'smooth'
       });
     }, 100);
+    
+    return div;
+  }
+
+  window.addUserBubble = function(text) {
+    return createBubble(text, true);
   }
 
   window.addBubble = function(text) {
-    const windowEl = document.querySelector('.chat__window');
-    if (!windowEl) {
-      console.error('chat__window לא נמצא!');
-      return;
-    }
-    const div = document.createElement('div');
-    div.className = 'bubble bubble--bot';
-    div.innerHTML = text;
-    windowEl.appendChild(div);
-    // גלילה חלקה לתחתית
-    setTimeout(() => {
-      windowEl.scrollTo({
-        top: windowEl.scrollHeight,
-        behavior: 'smooth'
-      });
-    }, 100);
+    return createBubble(text, false);
   }
 
   // פונקציה משותפת לטיפול בשאלות על מספר תלמידים - מונעת כפילות
@@ -1884,31 +1884,14 @@
       }
       console.log('שולח שאלה:', q);
       
-      // הוספת בועת משתמש - תמיד!
+      // הוספת בועת משתמש
       try {
-        if (typeof window.addUserBubble === 'function') {
-          window.addUserBubble(q);
-        } else if (typeof addUserBubble === 'function') {
-          addUserBubble(q);
-        } else {
-          console.error('addUserBubble לא מוגדרת!');
-          // יצירת בועת משתמש ידנית
-          const windowEl = document.querySelector('.chat__window');
-          if (windowEl) {
-            const div = document.createElement('div');
-            div.className = 'bubble bubble--user';
-            div.innerHTML = `<p>${q}</p>`;
-            windowEl.appendChild(div);
-            setTimeout(() => {
-              windowEl.scrollTo({
-                top: windowEl.scrollHeight,
-                behavior: 'smooth'
-              });
-            }, 100);
-          }
+        if (!window.addUserBubble || !window.addUserBubble(q)) {
+          createBubble(q, true); // fallback
         }
       } catch (err) {
         console.error('שגיאה בהוספת בועת משתמש:', err);
+        createBubble(q, true); // fallback
       }
       
       // בדיקה אם השאלה היא על tracks או regulations - הצגת תפריט
@@ -1958,78 +1941,26 @@
         reply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
       }
       
-      // הוספת בועת תשובה - תמיד!
+      // הוספת בועת תשובה
       if (reply && reply.trim() !== '') {
         try {
-          if (typeof window.addBubble === 'function') {
-            window.addBubble(reply);
-          } else if (typeof addBubble === 'function') {
-            addBubble(reply);
-          } else {
-            console.error('addBubble לא מוגדרת!');
-            // יצירת בועת תשובה ידנית
-            const windowEl = document.querySelector('.chat__window');
-            if (windowEl) {
-              const div = document.createElement('div');
-              div.className = 'bubble bubble--bot';
-              div.innerHTML = reply;
-              windowEl.appendChild(div);
-              setTimeout(() => {
-                windowEl.scrollTo({
-                  top: windowEl.scrollHeight,
-                  behavior: 'smooth'
-                });
-              }, 100);
-            }
+          if (!window.addBubble || !window.addBubble(reply)) {
+            createBubble(reply, false); // fallback
           }
         } catch (err) {
           console.error('שגיאה בהוספת בועת תשובה:', err);
-          // נסיון נוסף - יצירה ידנית
-          try {
-            const windowEl = document.querySelector('.chat__window');
-            if (windowEl) {
-              const div = document.createElement('div');
-              div.className = 'bubble bubble--bot';
-              div.innerHTML = reply;
-              windowEl.appendChild(div);
-              setTimeout(() => {
-                windowEl.scrollTo({
-                  top: windowEl.scrollHeight,
-                  behavior: 'smooth'
-                });
-              }, 100);
-            }
-          } catch (err2) {
-            console.error('שגיאה גם ביצירה ידנית:', err2);
-            alert('שגיאה בהצגת התשובה. נא לרענן את הדף.');
-          }
+          createBubble(reply, false); // fallback
         }
       } else {
         console.warn('לא התקבלה תשובה!');
         const defaultReply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
         try {
-          if (typeof window.addBubble === 'function') {
-            window.addBubble(defaultReply);
-          } else if (typeof addBubble === 'function') {
-            addBubble(defaultReply);
-          } else {
-            // יצירה ידנית
-            const windowEl = document.querySelector('.chat__window');
-            if (windowEl) {
-              const div = document.createElement('div');
-              div.className = 'bubble bubble--bot';
-              div.innerHTML = defaultReply;
-              windowEl.appendChild(div);
-              setTimeout(() => {
-                windowEl.scrollTo({
-                  top: windowEl.scrollHeight,
-                  behavior: 'smooth'
-                });
-              }, 100);
-            }
+          if (!window.addBubble || !window.addBubble(defaultReply)) {
+            createBubble(defaultReply, false); // fallback
           }
         } catch (err) {
           console.error('שגיאה בהוספת תשובה ברירת מחדל:', err);
+          createBubble(defaultReply, false); // fallback
         }
       }
       
