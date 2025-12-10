@@ -106,11 +106,15 @@
               const matchResult = window.matchAnswer(q);
               if (matchResult && matchResult.answer) {
                 reply = matchResult.answer;
-                // הוספת הצעות אם יש
-                if (matchResult.topic) {
-                  const suggestions = getTwoSuggestions ? getTwoSuggestions(matchResult.topic, matchResult.specificQuestion) : '';
-                  if (suggestions) {
-                    reply = `${reply}<br><br>💡 רוצה לשמוע עוד? ${suggestions}`;
+                // הוספת הצעות אם יש - נשתמש ב-craftReply אם אפשר
+                if (matchResult.topic && typeof window.craftReply === 'function') {
+                  try {
+                    const crafted = window.craftReply(q);
+                    if (crafted && crafted.trim() !== '') {
+                      reply = crafted;
+                    }
+                  } catch (e) {
+                    // אם יש שגיאה, נשאיר את התשובה המקורית
                   }
                 }
               } else {
@@ -126,11 +130,15 @@
             const matchResult = window.matchAnswer(q);
             if (matchResult && matchResult.answer) {
               reply = matchResult.answer;
-              // הוספת הצעות אם יש
-              if (matchResult.topic) {
-                const suggestions = getTwoSuggestions ? getTwoSuggestions(matchResult.topic, matchResult.specificQuestion) : '';
-                if (suggestions) {
-                  reply = `${reply}<br><br>💡 רוצה לשמוע עוד? ${suggestions}`;
+              // ננסה להשתמש ב-craftReply אם היא מוגדרת עכשיו
+              if (typeof window.craftReply === 'function') {
+                try {
+                  const crafted = window.craftReply(q);
+                  if (crafted && crafted.trim() !== '') {
+                    reply = crafted;
+                  }
+                } catch (e) {
+                  // אם יש שגיאה, נשאיר את התשובה המקורית
                 }
               }
             } else {
