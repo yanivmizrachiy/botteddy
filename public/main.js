@@ -1573,15 +1573,87 @@
     }, 100);
   }
 
+  // פונקציה משותפת לטיפול בשאלות על מספר תלמידים - מונעת כפילות
+  function handleClassCountQuery(normalizedLower, persona) {
+    const classCountItem = knowledgeBase.find(k => k.topic === 'class-count');
+    if (!classCountItem) return null;
+    
+    // מיפוי כיתות - מבנה נתונים מרכזי
+    const classData = {
+      'ז1': { count: 24, isScientific: true, grade: 'ז' },
+      'ז2': { count: 14, isScientific: false, grade: 'ז' },
+      'ז3': { count: 19, isScientific: false, grade: 'ז' },
+      'ז4': { count: 20, isScientific: false, grade: 'ז' },
+      'ח1': { count: 17, isScientific: true, grade: 'ח' },
+      'ח2': { count: 13, isScientific: false, grade: 'ח' },
+      'ח3': { count: 25, isScientific: false, grade: 'ח' },
+      'ח4': { count: 27, isScientific: false, grade: 'ח' },
+      'ט1': { count: 28, isScientific: true, grade: 'ט' },
+      'ט2': { count: 18, isScientific: false, grade: 'ט' },
+      'ט3': { count: 18, isScientific: false, grade: 'ט' },
+      'ט4': { count: 26, isScientific: false, grade: 'ט' },
+      'ט5': { count: 23, isScientific: false, grade: 'ט' }
+    };
+    
+    const gradeTotals = { 'ז': { total: 77, classes: 4 }, 'ח': { total: 82, classes: 4 }, 'ט': { total: 113, classes: 5 } };
+    
+    // בדיקת כיתה ספציפית
+    for (const [classKey, data] of Object.entries(classData)) {
+      const patterns = [classKey, classKey.replace(/(\d)/, "'$1"), classKey.replace(/(\d)/, ' $1')];
+      if (patterns.some(p => normalizedLower.includes(p))) {
+        const scientific = data.isScientific ? ' המדעית' : '';
+        return { 
+          answer: `נכון לשנת הלימודים תשפ"ו: בכיתה ${classKey.replace(/(\d)/, "'$1")}${scientific} יש ${data.count} תלמידים.`,
+          topic: 'class-count',
+          persona
+        };
+      }
+    }
+    
+    // בדיקת שכבה ספציפית (ללא מספר כיתה)
+    const hasNumber = /[1-5]/.test(normalizedLower);
+    if (!hasNumber) {
+      if (normalizedLower.includes('ז') && !normalizedLower.includes('ח') && !normalizedLower.includes('ט')) {
+        return {
+          answer: 'נכון לשנת הלימודים תשפ"ו: שכבת ז\' – 77 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?',
+          topic: 'class-count',
+          persona
+        };
+      }
+      if (normalizedLower.includes('ח') && !normalizedLower.includes('ז') && !normalizedLower.includes('ט')) {
+        return {
+          answer: 'נכון לשנת הלימודים תשפ"ו: שכבת ח\' – 82 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?',
+          topic: 'class-count',
+          persona
+        };
+      }
+      if (normalizedLower.includes('ט') && !normalizedLower.includes('ז') && !normalizedLower.includes('ח')) {
+        return {
+          answer: 'נכון לשנת הלימודים תשפ"ו: שכבת ט\' – 113 תלמידים ב-5 כיתות. רוצה לשמוע על כיתה ספציפית?',
+          topic: 'class-count',
+          persona
+        };
+      }
+    }
+    
+    // שאלה על כל החטיבה
+    if (normalizedLower.includes('חטיבה') || normalizedLower.includes('בית ספר') || normalizedLower.includes('272') || normalizedLower.includes('סה"כ') || normalizedLower.includes('כל')) {
+      return {
+        answer: 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש 272 תלמידים. שכבת ז\' – 77, שכבת ח\' – 82, שכבת ט\' – 113. רוצה לשמוע על שכבה ספציפית?',
+        topic: 'class-count',
+        persona
+      };
+    }
+    
+    return null;
+  }
+
   function matchAnswer(q) {
-    // ניקוי השאלה מרווחים ותווים מיוחדים
     const cleaned = q.trim();
-    // נורמליזציה של השאלה לפני עיבוד
     const normalized = normalizeText(cleaned);
     const lower = normalized.toLowerCase();
     const persona = detectPersona(lower);
     
-    // עדכון context memory
     contextMemory.questionCount++;
     if (contextMemory.lastPersona !== persona) {
       contextMemory.lastPersona = persona;
@@ -1590,7 +1662,7 @@
     const safety = safetyFilter(q);
     if (safety) return { answer: safety, topic: 'safe', persona };
 
-    // בדיקה משופרת למילות ברכה - גם עם toLowerCase וגם בלי (כי toLowerCase לא משנה עברית)
+    // ברכות
     if (cleaned.includes('שלום') || cleaned.includes('היי') || cleaned.includes('הי') || lower.includes('hi') || lower.includes('hello')) {
       return { answer: 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?', topic: 'greeting', persona };
     }
@@ -1598,7 +1670,7 @@
       return { answer: 'רוצה סיכום זריז? בולטים על יום לימודים, מסלולים, תמיכה ומרכז הלמידה — רק תגיד/י איזה מהם.', topic: 'summary', persona };
     }
 
-    // בדיקה מיוחדת עבור tracks ו-regulations
+    // תפריטים מיוחדים
     if (lower.includes('מסלול') || lower.includes('tracks') || lower.includes('ממר"ם') || lower.includes('שער לרפואה') || lower.includes('גשרים') || lower.includes('מוזיקה') || lower.includes('מצטיינים')) {
       return { answer: '', topic: 'tracks', persona };
     }
@@ -1606,7 +1678,7 @@
       return { answer: '', topic: 'regulations', persona };
     }
 
-    // בדיקה מיוחדת לשאלות על מנהלים קודמים
+    // מנהלים קודמים
     if ((lower.includes('לפני') || lower.includes('קודם') || lower.includes('לשעבר')) && 
         (lower.includes('ישראלה') || lower.includes('ברודו') || lower.includes('מנהלת') || lower.includes('מנהל'))) {
       const principalInfo = knowledgeBase.find(k => k.topic === 'principal');
@@ -1619,19 +1691,16 @@
       }
     }
 
-    // שלב 4: זיהוי שאלות ספציפיות - קודם כל! (עם נורמליזציה)
+    // שאלות ספציפיות
     const normalizedQ = normalizeText(q);
     const specificQuestion = detectSpecificQuestion(normalizedQ);
     if (specificQuestion.type !== 'general') {
       const focusedAnswer = getFocusedAnswer(specificQuestion, knowledgeBase);
       if (focusedAnswer) {
-        // עדכון context memory
         contextMemory.lastTopic = focusedAnswer.topic;
         if (!contextMemory.recentTopics.includes(focusedAnswer.topic)) {
           contextMemory.recentTopics.push(focusedAnswer.topic);
-          if (contextMemory.recentTopics.length > 5) {
-            contextMemory.recentTopics.shift();
-          }
+          if (contextMemory.recentTopics.length > 5) contextMemory.recentTopics.shift();
         }
         return {
           answer: focusedAnswer.answer,
@@ -1643,21 +1712,18 @@
       }
     }
 
-    // חיפוש חכם ראשוני - עם נורמליזציה
+    // חיפוש ב-knowledge base
     const found = findInKnowledge(lower);
     if (found) {
-      // עדכון context memory
       contextMemory.lastTopic = found.topic;
       if (!contextMemory.recentTopics.includes(found.topic)) {
         contextMemory.recentTopics.push(found.topic);
-        if (contextMemory.recentTopics.length > 5) {
-          contextMemory.recentTopics.shift();
-        }
+        if (contextMemory.recentTopics.length > 5) contextMemory.recentTopics.shift();
       }
       return { answer: found.answer, topic: found.topic, persona };
     }
 
-    // בדיקות מיוחדות משופרות - עם נורמליזציה
+    // בדיקות מיוחדות
     const normalizedLower = normalizeText(lower);
     
     // בדיקה משופרת למיקום - כל ניסוח של "איפה"
@@ -1671,141 +1737,20 @@
       return { answer: 'בית הספר נמצא ברחוב משה דיין, פסגת זאב, ירושלים. זה הלוקיישן המדויק שתמצא ב-Waze או במפה.', topic: 'location', persona };
     }
     
-    // בדיקה משופרת לכמות תלמידים - קודם כל! (לפני בדיקות אחרות)
+    // בדיקת שאלות על מספר תלמידים - שימוש בפונקציה משותפת
     if (normalizedLower.includes('כמה') && 
         (normalizedLower.includes('לומדים') || normalizedLower.includes('תלמידים') || normalizedLower.includes('ילדים')) &&
         (normalizedLower.includes('כיתות') || normalizedLower.includes('כיתה') || normalizedLower.includes('שכבה') || normalizedLower.includes('שכבת') || 
          normalizedLower.includes('ז') || normalizedLower.includes('ח') || normalizedLower.includes('ט') ||
          normalizedLower.includes('בכל כיתה') || normalizedLower.includes('בכל כיתות') || normalizedLower.includes('כל כיתה') || normalizedLower.includes('כל כיתות') ||
          normalizedLower.includes('חטיבה') || normalizedLower.includes('בית ספר') || normalizedLower.includes('272') || normalizedLower.includes('סה"כ'))) {
-      const found = findInKnowledge(normalizedLower);
-      if (found && found.topic === 'class-count') {
-        // בדיקה אם השאלה היא על שכבה ספציפית או כיתה ספציפית - נחזיר תשובה ממוקדת
-        const classCountItem = knowledgeBase.find(k => k.topic === 'class-count');
-        if (classCountItem) {
-          let focusedAnswer = classCountItem.answer;
-          
-          // בדיקה לשאלות על כיתות ספציפיות (ז'1, ז'2, וכו')
-          if (normalizedLower.includes('ז1') || normalizedLower.includes('ז\'1') || normalizedLower.includes('ז 1')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'1 המדעית יש 24 תלמידים.';
-          } else if (normalizedLower.includes('ז2') || normalizedLower.includes('ז\'2') || normalizedLower.includes('ז 2')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'2 יש 14 תלמידים.';
-          } else if (normalizedLower.includes('ז3') || normalizedLower.includes('ז\'3') || normalizedLower.includes('ז 3')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'3 יש 19 תלמידים.';
-          } else if (normalizedLower.includes('ז4') || normalizedLower.includes('ז\'4') || normalizedLower.includes('ז 4')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'4 יש 20 תלמידים.';
-          } else if (normalizedLower.includes('ח1') || normalizedLower.includes('ח\'1') || normalizedLower.includes('ח 1')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'1 המדעית יש 17 תלמידים.';
-          } else if (normalizedLower.includes('ח2') || normalizedLower.includes('ח\'2') || normalizedLower.includes('ח 2')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'2 יש 13 תלמידים.';
-          } else if (normalizedLower.includes('ח3') || normalizedLower.includes('ח\'3') || normalizedLower.includes('ח 3')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'3 יש 25 תלמידים.';
-          } else if (normalizedLower.includes('ח4') || normalizedLower.includes('ח\'4') || normalizedLower.includes('ח 4')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'4 יש 27 תלמידים.';
-          } else if (normalizedLower.includes('ט1') || normalizedLower.includes('ט\'1') || normalizedLower.includes('ט 1')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'1 המדעית יש 28 תלמידים.';
-          } else if (normalizedLower.includes('ט2') || normalizedLower.includes('ט\'2') || normalizedLower.includes('ט 2')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'2 יש 18 תלמידים.';
-          } else if (normalizedLower.includes('ט3') || normalizedLower.includes('ט\'3') || normalizedLower.includes('ט 3')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'3 יש 18 תלמידים.';
-          } else if (normalizedLower.includes('ט4') || normalizedLower.includes('ט\'4') || normalizedLower.includes('ט 4')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'4 יש 26 תלמידים.';
-          } else if (normalizedLower.includes('ט5') || normalizedLower.includes('ט\'5') || normalizedLower.includes('ט 5')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'5 יש 23 תלמידים.';
-          }
-          // בדיקה לשאלות על שכבות ספציפיות
-          // אם יש "כיתה" (ביחיד) + אות שכבה (ז/ח/ט) ללא מספר - זה בעצם שאלה על השכבה
-          // או אם יש "כמה" + "ילדים/תלמידים/לומדים" + אות שכבה (ז/ח/ט) ללא מספר כיתה
-          else if (normalizedLower.includes('ז') && !normalizedLower.includes('ח') && !normalizedLower.includes('ט') && 
-                   !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ז1') && !normalizedLower.includes('ז\'1') && 
-                   !normalizedLower.includes('ז2') && !normalizedLower.includes('ז\'2') && !normalizedLower.includes('ז3') && 
-                   !normalizedLower.includes('ז\'3') && !normalizedLower.includes('ז4') && !normalizedLower.includes('ז\'4')) {
-            // שאלה על שכבת ז' (ללא מספר כיתה ספציפי)
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ז\' – 77 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
-          } else if (normalizedLower.includes('ח') && !normalizedLower.includes('ז') && !normalizedLower.includes('ט') && 
-                     !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ח1') && !normalizedLower.includes('ח\'1') && 
-                     !normalizedLower.includes('ח2') && !normalizedLower.includes('ח\'2') && !normalizedLower.includes('ח3') && 
-                     !normalizedLower.includes('ח\'3') && !normalizedLower.includes('ח4') && !normalizedLower.includes('ח\'4')) {
-            // שאלה על שכבת ח' (ללא מספר כיתה ספציפי)
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ח\' – 82 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
-          } else if (normalizedLower.includes('ט') && !normalizedLower.includes('ז') && !normalizedLower.includes('ח') && 
-                     !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ט1') && !normalizedLower.includes('ט\'1') && 
-                     !normalizedLower.includes('ט2') && !normalizedLower.includes('ט\'2') && !normalizedLower.includes('ט3') && 
-                     !normalizedLower.includes('ט\'3') && !normalizedLower.includes('ט4') && !normalizedLower.includes('ט\'4') && 
-                     !normalizedLower.includes('ט5') && !normalizedLower.includes('ט\'5')) {
-            // שאלה על שכבת ט' (ללא מספר כיתה ספציפי) - זה כולל "כמה תלמידים בכיתה ט", "כמה ילדי ט", "כמה ילדים ט"
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ט\' – 113 תלמידים ב-5 כיתות. רוצה לשמוע על כיתה ספציפית?';
-          }
-          // שאלות על כל החטיבה או בית הספר
-          else if (normalizedLower.includes('חטיבה') || normalizedLower.includes('בית ספר') || normalizedLower.includes('272') || normalizedLower.includes('סה"כ') || normalizedLower.includes('כל')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש 272 תלמידים. שכבת ז\' – 77, שכבת ח\' – 82, שכבת ט\' – 113. רוצה לשמוע על שכבה ספציפית?';
-          }
-          
-          return { answer: focusedAnswer, topic: 'class-count', persona };
-        }
-        return { answer: found.answer, topic: 'class-count', persona };
-      }
-      // אם לא נמצא, נסה למצוא את הנושא class-count ישירות
+      const classCountResult = handleClassCountQuery(normalizedLower, persona);
+      if (classCountResult) return classCountResult;
+      
+      // אם לא נמצאה תשובה ממוקדת, נחזיר את התשובה הכללית
       const classCountItem = knowledgeBase.find(k => k.topic === 'class-count');
       if (classCountItem) {
-        // בדיקה אם השאלה היא על שכבה ספציפית או כיתה ספציפית
-        let focusedAnswer = classCountItem.answer;
-        
-        // בדיקה לשאלות על כיתות ספציפיות
-        if (normalizedLower.includes('ז1') || normalizedLower.includes('ז\'1') || normalizedLower.includes('ז 1')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'1 המדעית יש 24 תלמידים.';
-        } else if (normalizedLower.includes('ז2') || normalizedLower.includes('ז\'2') || normalizedLower.includes('ז 2')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'2 יש 14 תלמידים.';
-        } else if (normalizedLower.includes('ז3') || normalizedLower.includes('ז\'3') || normalizedLower.includes('ז 3')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'3 יש 19 תלמידים.';
-        } else if (normalizedLower.includes('ז4') || normalizedLower.includes('ז\'4') || normalizedLower.includes('ז 4')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ז\'4 יש 20 תלמידים.';
-        } else if (normalizedLower.includes('ח1') || normalizedLower.includes('ח\'1') || normalizedLower.includes('ח 1')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'1 המדעית יש 17 תלמידים.';
-        } else if (normalizedLower.includes('ח2') || normalizedLower.includes('ח\'2') || normalizedLower.includes('ח 2')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'2 יש 13 תלמידים.';
-        } else if (normalizedLower.includes('ח3') || normalizedLower.includes('ח\'3') || normalizedLower.includes('ח 3')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'3 יש 25 תלמידים.';
-        } else if (normalizedLower.includes('ח4') || normalizedLower.includes('ח\'4') || normalizedLower.includes('ח 4')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ח\'4 יש 27 תלמידים.';
-        } else if (normalizedLower.includes('ט1') || normalizedLower.includes('ט\'1') || normalizedLower.includes('ט 1')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'1 המדעית יש 28 תלמידים.';
-        } else if (normalizedLower.includes('ט2') || normalizedLower.includes('ט\'2') || normalizedLower.includes('ט 2')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'2 יש 18 תלמידים.';
-        } else if (normalizedLower.includes('ט3') || normalizedLower.includes('ט\'3') || normalizedLower.includes('ט 3')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'3 יש 18 תלמידים.';
-        } else if (normalizedLower.includes('ט4') || normalizedLower.includes('ט\'4') || normalizedLower.includes('ט 4')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'4 יש 26 תלמידים.';
-        } else if (normalizedLower.includes('ט5') || normalizedLower.includes('ט\'5') || normalizedLower.includes('ט 5')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בכיתה ט\'5 יש 23 תלמידים.';
-        }
-        // בדיקה לשאלות על שכבות ספציפיות
-        // אם יש "כיתה" (ביחיד) + אות שכבה (ז/ח/ט) ללא מספר - זה בעצם שאלה על השכבה
-        // או אם יש "כמה" + "ילדים/תלמידים/לומדים" + אות שכבה (ז/ח/ט) ללא מספר כיתה
-        else if (normalizedLower.includes('ז') && !normalizedLower.includes('ח') && !normalizedLower.includes('ט') && 
-                 !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ז1') && !normalizedLower.includes('ז\'1') && 
-                 !normalizedLower.includes('ז2') && !normalizedLower.includes('ז\'2') && !normalizedLower.includes('ז3') && 
-                 !normalizedLower.includes('ז\'3') && !normalizedLower.includes('ז4') && !normalizedLower.includes('ז\'4')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ז\' – 77 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
-        } else if (normalizedLower.includes('ח') && !normalizedLower.includes('ז') && !normalizedLower.includes('ט') && 
-                   !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ח1') && !normalizedLower.includes('ח\'1') && 
-                   !normalizedLower.includes('ח2') && !normalizedLower.includes('ח\'2') && !normalizedLower.includes('ח3') && 
-                   !normalizedLower.includes('ח\'3') && !normalizedLower.includes('ח4') && !normalizedLower.includes('ח\'4')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ח\' – 82 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
-        } else if (normalizedLower.includes('ט') && !normalizedLower.includes('ז') && !normalizedLower.includes('ח') && 
-                   !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ט1') && !normalizedLower.includes('ט\'1') && 
-                   !normalizedLower.includes('ט2') && !normalizedLower.includes('ט\'2') && !normalizedLower.includes('ט3') && 
-                   !normalizedLower.includes('ט\'3') && !normalizedLower.includes('ט4') && !normalizedLower.includes('ט\'4') && 
-                   !normalizedLower.includes('ט5') && !normalizedLower.includes('ט\'5')) {
-          // שאלה על שכבת ט' (ללא מספר כיתה ספציפי) - זה כולל "כמה תלמידים בכיתה ט", "כמה ילדי ט", "כמה ילדים ט"
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ט\' – 113 תלמידים ב-5 כיתות. רוצה לשמוע על כיתה ספציפית?';
-        }
-        // שאלות על כל החטיבה או בית הספר
-        else if (normalizedLower.includes('חטיבה') || normalizedLower.includes('בית ספר') || normalizedLower.includes('272') || normalizedLower.includes('סה"כ') || normalizedLower.includes('כל')) {
-          focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש סה"כ 272 תלמידים. שכבת ז\' – 77 תלמידים, שכבת ח\' – 82 תלמידים, שכבת ט\' – 113 תלמידים.';
-        }
-        
-        return { answer: focusedAnswer, topic: 'class-count', persona };
+        return { answer: classCountItem.answer, topic: 'class-count', persona };
       }
     }
     
