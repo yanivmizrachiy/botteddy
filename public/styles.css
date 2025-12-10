@@ -499,21 +499,26 @@ main.app-shell {
 .bubble {
   /* בסיס כללי - יורש מ-bubble--bot או bubble--user */
   border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 14px 16px;
+  padding: 16px 18px; /* הגדלתי את ה-padding לקריאות טובה יותר */
   margin-bottom: 10px;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* שינוי: hidden כדי שהטקסט לא יצא מהבועה */
+  overflow-wrap: break-word; /* שבירת מילים ארוכות */
+  word-wrap: break-word; /* תמיכה בדפדפנים ישנים */
+  word-break: break-word; /* שבירת מילים ארוכות */
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px; /* הגדלתי את ה-gap לרווח טוב יותר */
   animation: slideIn 0.3s ease-out;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
+  box-sizing: border-box; /* כולל padding ו-border בגודל */
   font-family: 'Assistant', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  overflow-wrap: break-word;
-  word-break: break-word;
   hyphens: auto;
+  min-width: 0; /* מאפשר לתיבה להתכווץ מתחת לתוכן המינימלי */
+  width: fit-content; /* רוחב לפי התוכן */
+  max-width: 100%; /* לא יותר מרוחב ההורה */
 }
 
 @keyframes slideIn {
@@ -569,10 +574,11 @@ main.app-shell {
   /* וואטסאפ סגנון - הודעות הבוט בצד ימין (RTL) */
   margin-right: auto;
   margin-left: 0;
-  width: auto;
-  max-width: 92%;
-  flex: 0 1 92%;
-  align-self: flex-end;
+  width: fit-content; /* רוחב לפי התוכן */
+  min-width: 120px; /* רוחב מינימלי לקריאות */
+  max-width: 92%; /* מקסימום 92% מרוחב ההורה */
+  flex: 0 1 auto; /* שינוי: auto במקום 92% כדי לאפשר התאמה דינמית */
+  align-self: flex-start; /* שינוי: flex-start במקום flex-end כדי שהבוט יהיה משמאל */
   border-left: 5px solid #0d90b8;
   background: linear-gradient(145deg, 
     #ffffff 0%, 
@@ -583,10 +589,14 @@ main.app-shell {
     0 1px 4px rgba(0, 0, 0, 0.1);
   color: #000000 !important;
   border-radius: 18px 18px 18px 4px; /* פינות מעוגלות בצד ימין, חדות בצד שמאל */
-  padding: 14px 16px;
+  padding: 16px 18px; /* הגדלתי את ה-padding לקריאות טובה יותר */
   text-align: right;
   word-wrap: break-word;
   word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  white-space: normal; /* מאפשר שבירת שורות */
+  overflow: hidden; /* וידוא שהטקסט לא יצא מהבועה */
 }
 
 .bubble--bot p,
@@ -598,9 +608,16 @@ main.app-shell {
   color: #000000 !important;
   text-shadow: none !important;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
   font-size: 1rem;
   font-family: 'Assistant', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%; /* לא יותר מרוחב ההורה */
+  box-sizing: border-box;
+  overflow: hidden; /* וידוא שהטקסט לא יצא */
+  text-overflow: ellipsis; /* הוספתי ellipsis לטקסט ארוך מדי */
 }
 
 .bubble--bot::after {
@@ -639,8 +656,15 @@ main.app-shell {
 .bubble em,
 .bubble ul,
 .bubble li {
-  line-height: 1.6;
+  line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
   margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%; /* לא יותר מרוחב ההורה */
+  box-sizing: border-box;
+  overflow: hidden; /* וידוא שהטקסט לא יצא */
+  text-overflow: ellipsis; /* הוספתי ellipsis לטקסט ארוך מדי */
 }
 
 .bubble p + p {
@@ -659,10 +683,11 @@ main.app-shell {
   /* וואטסאפ סגנון - הודעות המשתמש בצד שמאל (RTL) */
   margin-right: 0;
   margin-left: auto;
-  width: auto;
-  max-width: 92%;
-  flex: 0 1 92%;
-  align-self: flex-start;
+  width: fit-content; /* רוחב לפי התוכן */
+  min-width: 120px; /* רוחב מינימלי לקריאות */
+  max-width: 92%; /* מקסימום 92% מרוחב ההורה */
+  flex: 0 1 auto; /* שינוי: auto במקום 92% כדי לאפשר התאמה דינמית */
+  align-self: flex-end; /* שינוי: flex-end כדי שהמשתמש יהיה מימין */
   border-right: 5px solid #25D366;
   background: linear-gradient(145deg, 
     #DCF8C6 0%, 
@@ -673,10 +698,14 @@ main.app-shell {
     0 1px 4px rgba(0, 0, 0, 0.1);
   color: #000000 !important;
   border-radius: 18px 18px 4px 18px; /* פינות מעוגלות בצד שמאל, חדות בצד ימין */
-  padding: 14px 16px;
+  padding: 16px 18px; /* הגדלתי את ה-padding לקריאות טובה יותר */
   text-align: right;
   overflow-wrap: break-word;
   word-break: break-word;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  white-space: normal; /* מאפשר שבירת שורות */
+  overflow: hidden; /* וידוא שהטקסט לא יצא מהבועה */
 }
 
 .bubble--user p,
@@ -687,6 +716,14 @@ main.app-shell {
 .bubble--user * {
   color: #000000 !important;
   text-shadow: none !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%; /* לא יותר מרוחב ההורה */
+  box-sizing: border-box;
+  overflow: hidden; /* וידוא שהטקסט לא יצא */
+  text-overflow: ellipsis; /* הוספתי ellipsis לטקסט ארוך מדי */
+  line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
 }
 
 .bubble--user::after {
