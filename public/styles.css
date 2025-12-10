@@ -705,7 +705,7 @@ main.app-shell {
   word-wrap: break-word;
   box-sizing: border-box;
   white-space: normal; /* מאפשר שבירת שורות */
-  overflow: hidden; /* וידוא שהטקסט לא יצא מהבועה */
+  overflow: visible; /* שינוי: visible כדי שהטקסט יוצג בבועות המשתמש */
 }
 
 .bubble--user p,
@@ -721,9 +721,12 @@ main.app-shell {
   word-break: break-word;
   max-width: 100%; /* לא יותר מרוחב ההורה */
   box-sizing: border-box;
-  overflow: hidden; /* וידוא שהטקסט לא יצא */
-  text-overflow: ellipsis; /* הוספתי ellipsis לטקסט ארוך מדי */
+  overflow: visible; /* שינוי: visible כדי שהטקסט יוצג */
+  text-overflow: clip; /* שינוי: clip במקום ellipsis */
   line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
+  display: block; /* וידוא שהטקסט מוצג */
+  visibility: visible !important; /* וידוא שהטקסט נראה */
+  opacity: 1 !important; /* וידוא שהטקסט לא שקוף */
 }
 
 .bubble--user::after {

@@ -1531,9 +1531,19 @@
       console.error('chat__window לא נמצא!');
       return;
     }
+    if (!text || text.trim() === '') {
+      console.warn('טקסט ריק - לא מוסיף בועה');
+      return;
+    }
     const div = document.createElement('div');
     div.className = 'bubble bubble--user';
-    div.innerHTML = `<p>${text}</p>`;
+    const p = document.createElement('p');
+    p.textContent = text; // שימוש ב-textContent במקום innerHTML כדי למנוע בעיות
+    p.style.color = '#000000';
+    p.style.visibility = 'visible';
+    p.style.opacity = '1';
+    p.style.display = 'block';
+    div.appendChild(p);
     windowEl.appendChild(div);
     // גלילה חלקה לתחתית
     setTimeout(() => {
