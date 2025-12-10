@@ -790,6 +790,181 @@
     principal: ['מנהל', 'מנהלת']
   };
 
+  // זיכרון שיחה מתקדם - שלב 2
+  const conversationHistory = {
+    messages: [],
+    topics: [],
+    preferences: {},
+    
+    addMessage(role, text, topic) {
+      this.messages.push({ role, text, topic, timestamp: Date.now() });
+      if (this.messages.length > 15) this.messages.shift();
+      
+      if (topic && !this.topics.includes(topic)) {
+        this.topics.push(topic);
+        if (this.topics.length > 5) this.topics.shift();
+      }
+    },
+    
+    getContext() {
+      return {
+        recentTopics: this.topics,
+        lastMessage: this.messages[this.messages.length - 1],
+        conversationLength: this.messages.length
+      };
+    },
+    
+    clear() {
+      this.messages = [];
+      this.topics = [];
+      this.preferences = {};
+    }
+  };
+
+  // זיהוי כוונה מתקדם - שלב 2
+  function detectAdvancedIntent(question) {
+    const lower = normalizeText(question);
+    
+    // השוואה
+    if (lower.includes('הבדל') || lower.includes('שונה') || lower.includes('לעומת') || lower.includes('בין')) {
+      return { type: 'comparison', question };
+    }
+    
+    // בחירה
+    if ((lower.includes('איזה') || lower.includes('מה')) && (lower.includes('יותר') || lower.includes('טוב') || lower.includes('מומלץ'))) {
+      return { type: 'choice', question };
+    }
+    
+    // תנאי
+    if (lower.includes('אם') || lower.includes('במידה') || lower.includes('במקרה')) {
+      return { type: 'conditional', question };
+    }
+    
+    // עתיד
+    if (lower.includes('יהיה') || lower.includes('יעשה') || lower.includes('תקרה') || lower.includes('יערך')) {
+      return { type: 'future', question };
+    }
+    
+    // עבר
+    if (lower.includes('היה') || lower.includes('עשו') || lower.includes('קרה') || lower.includes('ערך')) {
+      return { type: 'past', question };
+    }
+    
+    // שאלות המשך
+    if (lower.includes('ומה') || lower.includes('ואיך') || lower.includes('וגם') || lower.includes('בנוסף')) {
+      return { type: 'follow-up', question };
+    }
+    
+    return { type: 'general', question };
+  }
+
+  // ניתוח רגשי בסיסי - שלב 2
+  function detectSentiment(text) {
+    const lower = normalizeText(text);
+    const positiveWords = ['מגניב', 'כיף', 'אהבתי', 'מעולה', 'מדהים', 'נהדר', 'מעניין', 'מרגש'];
+    const negativeWords = ['חושש', 'מפחד', 'קשה', 'מתקשה', 'לא יודע', 'דאגה', 'חשש', 'מבולבל'];
+    const concernWords = ['מה אם', 'איך אתמודד', 'חשש', 'דאגה', 'מפחד', 'לא בטוח'];
+    const excitementWords = ['וואו', 'מגניב', 'מדהים', 'מעולה', 'כיף', 'מרגש'];
+    
+    let score = 0;
+    positiveWords.forEach(word => { if (lower.includes(word)) score += 1; });
+    negativeWords.forEach(word => { if (lower.includes(word)) score -= 1; });
+    
+    const hasConcern = concernWords.some(word => lower.includes(word));
+    const hasExcitement = excitementWords.some(word => lower.includes(word));
+    
+    return {
+      sentiment: score > 0 ? 'positive' : score < 0 ? 'negative' : 'neutral',
+      hasConcern,
+      hasExcitement,
+      score
+    };
+  }
+
+  // זיהוי שגיאות כתיב - שלב 4
+  const commonTypos = {
+    'ממרם': 'ממר"ם',
+    'ממר"ם': 'ממר"ם',
+    'שלח': 'של"ח',
+    'של"ח': 'של"ח',
+    'תקנון': 'תקנון',
+    'תקנון': 'תקנון',
+    'מנהלת': 'מנהלת',
+    'יועצת': 'יועצת',
+    'רכזת': 'רכזת',
+    'רכז': 'רכז'
+  };
+
+  function fixTypos(text) {
+    let fixed = text;
+    for (const [wrong, correct] of Object.entries(commonTypos)) {
+      fixed = fixed.replace(new RegExp(wrong, 'gi'), correct);
+    }
+    return fixed;
+  }
+
+  // Levenshtein distance - זיהוי שגיאות כתיב מתקדם
+  function levenshteinDistance(str1, str2) {
+    const matrix = [];
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[str2.length][str1.length];
+  }
+
+  function findClosestMatch(text, options, threshold = 2) {
+    const normalized = normalizeText(text);
+    let bestMatch = null;
+    let bestDistance = Infinity;
+    
+    for (const option of options) {
+      const normalizedOption = normalizeText(option);
+      const distance = levenshteinDistance(normalized, normalizedOption);
+      if (distance < bestDistance && distance <= threshold) {
+        bestDistance = distance;
+        bestMatch = option;
+      }
+    }
+    
+    return bestMatch;
+  }
+
+  // זיהוי ניסוחים שונים - שלב 4
+  const equivalentPhrases = {
+    'כמה תלמידים': ['כמה לומדים', 'כמה ילדים', 'מספר תלמידים', 'כמות תלמידים'],
+    'מתי מתחילים': ['מתי מתחיל', 'שעת התחלה', 'מתי נפתח', 'מתי מתחיל היום'],
+    'איפה נמצא': ['איפה נמצא', 'מה הכתובת', 'איך מגיעים', 'מה המיקום'],
+    'מי המנהלת': ['מי מנהלת', 'מי מנהל', 'מי המנהל'],
+    'מה השעות': ['מה השעות', 'מתי מתחיל', 'מתי נגמר', 'שעות לימודים']
+  };
+
+  function expandQuery(query) {
+    let expanded = [query];
+    const normalizedQuery = normalizeText(query);
+    for (const [key, equivalents] of Object.entries(equivalentPhrases)) {
+      if (normalizedQuery.includes(normalizeText(key))) {
+        expanded = expanded.concat(equivalents);
+      }
+    }
+    return expanded;
+  }
+
   const witty = [
     'בוא/י נזרום: אשמור קצר וקליל, ונמשיך לשאלה הבאה.',
     'פה זה לא דמו – זה המידע הרשמי, אבל בסטייל של כיתה ו׳.',
@@ -1331,6 +1506,19 @@
 
   // אינדקס מהיר לשליפה - מפה של מילות מפתח לנושאים
   const knowledgeIndex = {};
+  // אינדקס היררכי לפי קטגוריות - אופטימיזציה
+  const categoryIndex = {
+    'schedule': ['schedule', 'location', 'class-count', 'physical-layout'],
+    'social': ['social', 'shalach-tours', 'bonding-days', 'community-involvement'],
+    'innovation': ['innovation', 'digital-teaching', 'different-learning', 'selected-projects', 'google-classroom'],
+    'tracks': ['memram', 'shaar-refua', 'gsharim', 'excellence', 'music'],
+    'support': ['support', 'therapists', 'advancing-class', 'enrichment-programs', 'learning-center'],
+    'staff': ['staff', 'assistants', 'administrative-staff', 'principal', 'teachers', 'grade-7-staff', 'grade-8-staff', 'grade-9-staff', 'subject-teachers'],
+    'trips': ['trips', 'lail-hagesharim', 'galil-area'],
+    'regulations': ['regulations', 'vision', 'uniform', 'behavior', 'consequences', 'attendance', 'laptop', 'phone', 'exams', 'learning-environment'],
+    'facilities': ['facilities', 'cafeteria']
+  };
+  
   knowledgeBase.forEach(item => {
     item.synonyms.forEach(syn => {
       const key = normalizeText(syn);
@@ -1340,8 +1528,17 @@
       knowledgeIndex[key].push(item);
     });
   });
+  
+  // Cache של חיפושים - אופטימיזציה קיצונית
+  const searchCache = new Map();
+  const MAX_CACHE_SIZE = 100;
 
   function findInKnowledge(lower) {
+    // בדיקת cache - אופטימיזציה קיצונית
+    if (searchCache.has(lower)) {
+      return searchCache.get(lower);
+    }
+    
     const normalized = normalizeText(lower);
     const words = normalized.split(/\s+/).filter(w => w.length > 1);
     if (words.length === 0) return null;
@@ -1370,7 +1567,12 @@
         }
       });
       if (bestScore >= 3) { // התאמה מדויקת - נחזיר מיד
-        return knowledgeBase.find(item => item.topic === bestTopic);
+        const result = knowledgeBase.find(item => item.topic === bestTopic);
+        // שמירה ב-cache
+        if (searchCache.size < MAX_CACHE_SIZE) {
+          searchCache.set(lower, result);
+        }
+        return result;
       }
     }
     
@@ -1406,6 +1608,7 @@
     }
     
     // החזרת התוצאה הטובה ביותר
+    let result = null;
     if (matches.size > 0) {
       let bestTopic = null;
       let bestScore = 0;
@@ -1417,11 +1620,16 @@
       });
       
       if (bestScore >= 1) {
-        return knowledgeBase.find(item => item.topic === bestTopic);
+        result = knowledgeBase.find(item => item.topic === bestTopic);
       }
     }
     
-    return null;
+    // שמירה ב-cache
+    if (result && searchCache.size < MAX_CACHE_SIZE) {
+      searchCache.set(lower, result);
+    }
+    
+    return result;
   }
 
   function toBullets(text) {
@@ -1680,10 +1888,25 @@
   }
 
   function matchAnswer(q) {
-    const cleaned = q.trim();
+    // תיקון שגיאות כתיב - שלב 4
+    const fixedQ = fixTypos(q);
+    const cleaned = fixedQ.trim();
+    
+    // הרחבת שאלה - שלב 4
+    const expandedQueries = expandQuery(cleaned);
     const normalized = normalizeText(cleaned);
     const lower = normalized.toLowerCase();
+    
+    // זיהוי כוונה מתקדם - שלב 2
+    const intent = detectAdvancedIntent(cleaned);
+    
+    // ניתוח רגשי - שלב 2
+    const sentiment = detectSentiment(cleaned);
+    
     const persona = detectPersona(lower);
+    
+    // עדכון זיכרון שיחה - שלב 2
+    conversationHistory.addMessage('user', cleaned, null);
     
     contextMemory.questionCount++;
     if (contextMemory.lastPersona !== persona) {
@@ -1691,14 +1914,21 @@
     }
     
     const safety = safetyFilter(q);
-    if (safety) return { answer: safety, topic: 'safe', persona };
+    if (safety) {
+      conversationHistory.addMessage('bot', safety, 'safe');
+      return { answer: safety, topic: 'safe', persona, sentiment, intent };
+    }
 
     // ברכות
     if (cleaned.includes('שלום') || cleaned.includes('היי') || cleaned.includes('הי') || lower.includes('hi') || lower.includes('hello')) {
-      return { answer: 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?', topic: 'greeting', persona };
+      const answer = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
+      conversationHistory.addMessage('bot', answer, 'greeting');
+      return { answer, topic: 'greeting', persona, sentiment, intent };
     }
     if (lower.includes('סכם') || lower.includes('בולטים') || lower.includes('נקודות')) {
-      return { answer: 'רוצה סיכום זריז? בולטים על יום לימודים, מסלולים, תמיכה ומרכז הלמידה — רק תגיד/י איזה מהם.', topic: 'summary', persona };
+      const answer = 'רוצה סיכום זריז? בולטים על יום לימודים, מסלולים, תמיכה ומרכז הלמידה — רק תגיד/י איזה מהם.';
+      conversationHistory.addMessage('bot', answer, 'summary');
+      return { answer, topic: 'summary', persona, sentiment, intent };
     }
 
     // תפריטים מיוחדים
@@ -1733,12 +1963,15 @@
           contextMemory.recentTopics.push(focusedAnswer.topic);
           if (contextMemory.recentTopics.length > 5) contextMemory.recentTopics.shift();
         }
+        conversationHistory.addMessage('bot', focusedAnswer.answer, focusedAnswer.topic);
         return {
           answer: focusedAnswer.answer,
           topic: focusedAnswer.topic,
           persona,
           isFocused: true,
-          specificQuestion
+          specificQuestion,
+          sentiment,
+          intent
         };
       }
     }
@@ -1751,7 +1984,8 @@
         contextMemory.recentTopics.push(found.topic);
         if (contextMemory.recentTopics.length > 5) contextMemory.recentTopics.shift();
       }
-      return { answer: found.answer, topic: found.topic, persona };
+      conversationHistory.addMessage('bot', found.answer, found.topic);
+      return { answer: found.answer, topic: found.topic, persona, sentiment, intent };
     }
 
     // בדיקות מיוחדות
@@ -1842,36 +2076,69 @@
 
   function craftReply(q) {
     const matchResult = matchAnswer(q);
-    const { answer, topic, persona, isFocused, specificQuestion } = matchResult;
+    const { answer, topic, persona, isFocused, specificQuestion, sentiment, intent } = matchResult;
     
     if (!answer || answer.trim() === '' || answer === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
       return answer || '';
+    }
+    
+    // התאמת טון לפי רגש - שלב 2
+    let adjustedAnswer = answer;
+    if (sentiment) {
+      if (sentiment.hasConcern) {
+        adjustedAnswer = `אני מבין את החשש שלך. ${answer} אבל אל דאגה - יש לנו תמיכה מלאה! 💪`;
+      } else if (sentiment.hasExcitement) {
+        adjustedAnswer = `${answer} זה באמת מגניב! 🎉`;
+      } else if (sentiment.sentiment === 'positive') {
+        adjustedAnswer = `${answer} מעולה! 😊`;
+      }
     }
     
     // תשובות ממוקדות - קצרות וישירות
     if (isFocused) {
       const suggestion = getSmartSuggestion(topic, specificQuestion);
       const more = getSuggestions(topic);
-      return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
+      return `${adjustedAnswer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
     }
     
-    const answerLength = answer.length;
+    const answerLength = adjustedAnswer.length;
     const more = getSuggestions(topic);
     
     // תשובות ארוכות מאוד - רק התשובה + נושאים נוספים
     if (answerLength > 400) {
-      return `${answer}<br><br>🔎 ${more}`;
+      return `${adjustedAnswer}<br><br>🔎 ${more}`;
     }
     
     // תשובות ארוכות - רק התשובה + follow-up
     if (answerLength > 200) {
       const follow = selectFollowUp(topic);
-      return `${answer}<br><br>${follow}<br><br>🔎 ${more}`;
+      return `${adjustedAnswer}<br><br>${follow}<br><br>🔎 ${more}`;
     }
     
     // תשובות קצרות - עם greeting וכו'
     const greet = greetings[Math.floor(Math.random() * greetings.length)];
     const follow = selectFollowUp(topic);
+    
+    // תשובות מותאמות אישית לפי persona - שלב 3
+    const personaAnswers = {
+      student: {
+        greeting: 'היי! אני כאן לעזור לך להכיר את החטיבה!',
+        tone: 'קליל, ידידותי, עם אימוג\'ים',
+        focus: 'חברים, פעילויות, כיף'
+      },
+      parent: {
+        greeting: 'שלום! אני כאן לעזור לכם להכיר את החטיבה.',
+        tone: 'מקצועי, מפורט, מרגיע',
+        focus: 'ביטחון, תמיכה, ליווי, הישגים'
+      },
+      teacher: {
+        greeting: 'שלום! אני כאן לעזור לך להכיר את החטיבה.',
+        tone: 'מקצועי, מפורט, טכני',
+        focus: 'פדגוגיה, מסלולים, חדשנות'
+      }
+    };
+    
+    const personaConfig = personaAnswers[persona] || personaAnswers.student;
     
     // תשובות קצרות מאוד - עם spice ו-persona
     if (answerLength < 100) {
@@ -1883,11 +2150,11 @@
           : persona === 'principal'
             ? 'כמנהל/ת, תשמח/י לדעת שהמצויינות והחדשנות מובילים את החטיבה.'
             : '';
-      return `${greet}<br>${answer}${spice ? '<br>' + spice : ''}${personaLine ? '<br>' + personaLine : ''}<br><br>${follow}<br><br>🔎 ${more}`;
+      return `${personaConfig.greeting}<br>${adjustedAnswer}${spice ? '<br>' + spice : ''}${personaLine ? '<br>' + personaLine : ''}<br><br>${follow}<br><br>🔎 ${more}`;
     }
     
     // תשובות בינוניות
-    return `${greet}<br>${answer}<br><br>${follow}<br><br>🔎 ${more}`;
+    return `${greet}<br>${adjustedAnswer}<br><br>${follow}<br><br>🔎 ${more}`;
   }
 
   window.onSend = function() {
@@ -2768,4 +3035,5 @@
   
   } // סיום פונקציה init
 })();
+
 
