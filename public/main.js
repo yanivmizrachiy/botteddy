@@ -42,6 +42,30 @@
     init();
   }
   
+  // פונקציה לאופטימיזציה של synonyms - הסרת כפילויות
+  function optimizeSynonyms(kb) {
+    return kb.map(item => {
+      if (!item.synonyms || !Array.isArray(item.synonyms)) return item;
+      
+      // הסרת כפילויות - שימוש ב-Set עם נורמליזציה
+      const seen = new Set();
+      const normalized = new Set();
+      const optimized = [];
+      
+      for (const syn of item.synonyms) {
+        const norm = normalizeText(syn.toLowerCase().trim());
+        // בדיקה אם זה לא כפילות (גם לא נורמליזציה כפולה)
+        if (syn.trim() && !seen.has(syn.trim()) && !normalized.has(norm)) {
+          seen.add(syn.trim());
+          normalized.add(norm);
+          optimized.push(syn.trim());
+        }
+      }
+      
+      return { ...item, synonyms: optimized };
+    });
+  }
+
   function init() {
   cards = document.querySelectorAll('.pill');
   input = document.querySelector('.chat__input input');
@@ -752,6 +776,12 @@
     }
   ];
 
+  // אופטימיזציה של knowledgeBase - הסרת כפילויות ב-synonyms
+  const optimizedKnowledgeBase = optimizeSynonyms(knowledgeBase);
+  // החלפת knowledgeBase המקורי בגרסה המאופטמציה
+  knowledgeBase.length = 0;
+  knowledgeBase.push(...optimizedKnowledgeBase);
+
   const badWords = ['אלימות', 'פוגעני', 'קללה']; // אפשר להרחיב
   const personas = {
     student: ['תלמיד', 'אני', 'שנה הבאה', 'מצטרף'],
@@ -1314,22 +1344,43 @@
   function findInKnowledge(lower) {
     const normalized = normalizeText(lower);
     const words = normalized.split(/\s+/).filter(w => w.length > 1);
-    const matches = new Map();
+    if (words.length === 0) return null;
     
-    // חיפוש מהיר דרך האינדקס - חיפוש מדויק
+    const matches = new Map();
+    const normalizedWords = new Set(words.map(w => normalizeText(w)));
+    
+    // חיפוש מהיר דרך האינדקס - חיפוש מדויק (הכי מהיר)
     for (const word of words) {
-      if (knowledgeIndex[word]) {
-        knowledgeIndex[word].forEach(item => {
+      const key = normalizeText(word);
+      if (knowledgeIndex[key]) {
+        knowledgeIndex[key].forEach(item => {
           matches.set(item.topic, (matches.get(item.topic) || 0) + 3);
         });
       }
     }
     
-    // חיפוש חלקי - כל מילה נבדקת בכל synonyms
+    // אם מצאנו התאמה טובה, נחזיר אותה מיד (אופטימיזציה)
+    if (matches.size > 0) {
+      let bestScore = 0;
+      let bestTopic = null;
+      matches.forEach((score, topic) => {
+        if (score > bestScore) {
+          bestScore = score;
+          bestTopic = topic;
+        }
+      });
+      if (bestScore >= 3) { // התאמה מדויקת - נחזיר מיד
+        return knowledgeBase.find(item => item.topic === bestTopic);
+      }
+    }
+    
+    // חיפוש חלקי - רק אם לא מצאנו התאמה מדויקת
     for (const item of knowledgeBase) {
-      for (const word of words) {
-        for (const syn of item.synonyms) {
-          const synLower = normalizeText(syn);
+      if (matches.has(item.topic)) continue; // כבר בדקנו
+      
+      for (const syn of item.synonyms) {
+        const synLower = normalizeText(syn);
+        for (const word of normalizedWords) {
           if (synLower.includes(word) || word.includes(synLower)) {
             matches.set(item.topic, (matches.get(item.topic) || 0) + 2);
             break;
@@ -1338,33 +1389,14 @@
       }
     }
     
-    // חיפוש fuzzy - חיפוש דומה גם עם שגיאות כתיב
-    for (const item of knowledgeBase) {
-      for (const syn of item.synonyms) {
-        const similarity = fuzzyMatch(lower, syn);
-        if (similarity > 0.6) {
-          matches.set(item.topic, (matches.get(item.topic) || 0) + Math.floor(similarity * 2));
-        }
-      }
-    }
-    
-    // חיפוש בתוכן התשובה - אם יש מילות מפתח בתשובה
-    for (const item of knowledgeBase) {
-      const answerLower = normalizeText(item.answer);
-      for (const word of words) {
-        if (answerLower.includes(word) && word.length > 2) {
-          matches.set(item.topic, (matches.get(item.topic) || 0) + 1);
-        }
-      }
-    }
-    
-    // חיפוש ב-bullets
-    for (const item of knowledgeBase) {
-      if (item.bullets) {
-        for (const bullet of item.bullets) {
-          const bulletLower = normalizeText(bullet);
-          for (const word of words) {
-            if (bulletLower.includes(word) && word.length > 2) {
+    // חיפוש ב-bullets - רק אם עדיין לא מצאנו משהו טוב
+    if (matches.size === 0 || Math.max(...Array.from(matches.values())) < 2) {
+      for (const item of knowledgeBase) {
+        if (item.bullets) {
+          const bulletsText = item.bullets.join(' ');
+          const bulletsLower = normalizeText(bulletsText);
+          for (const word of normalizedWords) {
+            if (word.length > 2 && bulletsLower.includes(word)) {
               matches.set(item.topic, (matches.get(item.topic) || 0) + 1.5);
               break;
             }
@@ -1384,7 +1416,6 @@
         }
       });
       
-      // רק אם יש ציון מספיק טוב
       if (bestScore >= 1) {
         return knowledgeBase.find(item => item.topic === bestTopic);
       }
@@ -1813,45 +1844,36 @@
     const matchResult = matchAnswer(q);
     const { answer, topic, persona, isFocused, specificQuestion } = matchResult;
     
-    if (answer === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
-      return answer;
-    }
-    // אם התשובה ריקה (כמו במקרה של tracks/regulations), לא לבנות תשובה
-    if (!answer || answer.trim() === '') {
-      return '';
+    if (!answer || answer.trim() === '' || answer === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
+      return answer || '';
     }
     
-    // שלב 5: אם זו תשובה ממוקדת, נחזיר אותה עם הצעה חכמה בלבד (בלי greeting, spice, persona)
+    // תשובות ממוקדות - קצרות וישירות
     if (isFocused) {
       const suggestion = getSmartSuggestion(topic, specificQuestion);
       const more = getSuggestions(topic);
-      // תשובות ממוקדות קצרות - רק התשובה + הצעה + נושאים נוספים
       return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
     }
     
-    // אם התשובה כבר מכילה את כל המידע, לא צריך להוסיף הרבה
     const answerLength = answer.length;
-    const isLongAnswer = answerLength > 200; // שינוי: 200 במקום 300 - תשובות קצרות יותר
-    const isVeryLongAnswer = answerLength > 400; // תשובות ארוכות מאוד
-    
-    // אם התשובה ארוכה מאוד, רק התשובה + follow-up קצר
-    if (isVeryLongAnswer) {
-      const more = getSuggestions(topic);
-      return `${answer}<br><br>🔎 ${more}`;
-    }
-    
-    // אם התשובה ארוכה, רק התשובה + follow-up (בלי greeting, spice, persona)
-    if (isLongAnswer) {
-      const more = getSuggestions(topic);
-      return `${answer}<br><br>🔎 ${more}`;
-    }
-    
-    // תשובות קצרות - נוסיף greeting וכו' רק אם התשובה קצרה
-    const greet = greetings[Math.floor(Math.random() * greetings.length)];
-    const follow = selectFollowUp(topic);
     const more = getSuggestions(topic);
     
-    // רק אם התשובה קצרה מאוד (פחות מ-100 תווים), נוסיף spice ו-persona
+    // תשובות ארוכות מאוד - רק התשובה + נושאים נוספים
+    if (answerLength > 400) {
+      return `${answer}<br><br>🔎 ${more}`;
+    }
+    
+    // תשובות ארוכות - רק התשובה + follow-up
+    if (answerLength > 200) {
+      const follow = selectFollowUp(topic);
+      return `${answer}<br><br>${follow}<br><br>🔎 ${more}`;
+    }
+    
+    // תשובות קצרות - עם greeting וכו'
+    const greet = greetings[Math.floor(Math.random() * greetings.length)];
+    const follow = selectFollowUp(topic);
+    
+    // תשובות קצרות מאוד - עם spice ו-persona
     if (answerLength < 100) {
       const spice = witty[Math.floor(Math.random() * witty.length)];
       const personaLine = persona === 'parent'
@@ -1864,7 +1886,7 @@
       return `${greet}<br>${answer}${spice ? '<br>' + spice : ''}${personaLine ? '<br>' + personaLine : ''}<br><br>${follow}<br><br>🔎 ${more}`;
     }
     
-    // תשובות בינוניות - רק greeting + תשובה + follow-up
+    // תשובות בינוניות
     return `${greet}<br>${answer}<br><br>${follow}<br><br>🔎 ${more}`;
   }
 
