@@ -569,8 +569,9 @@ main.app-shell {
   /* וואטסאפ סגנון - הודעות הבוט בצד ימין (RTL) */
   margin-right: auto;
   margin-left: 0;
-  width: fit-content;
-  max-width: 78%;
+  width: auto;
+  max-width: 92%;
+  flex: 0 1 92%;
   align-self: flex-end;
   border-left: 5px solid #0d90b8;
   background: linear-gradient(145deg, 
@@ -658,8 +659,9 @@ main.app-shell {
   /* וואטסאפ סגנון - הודעות המשתמש בצד שמאל (RTL) */
   margin-right: 0;
   margin-left: auto;
-  width: fit-content;
-  max-width: 78%;
+  width: auto;
+  max-width: 92%;
+  flex: 0 1 92%;
   align-self: flex-start;
   border-right: 5px solid #25D366;
   background: linear-gradient(145deg, 
@@ -673,6 +675,8 @@ main.app-shell {
   border-radius: 18px 18px 4px 18px; /* פינות מעוגלות בצד שמאל, חדות בצד ימין */
   padding: 14px 16px;
   text-align: right;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .bubble--user p,
