@@ -389,7 +389,7 @@
         'סה\"כ תלמידים בחטיבת הביניים תשפ\"ו: 272 תלמידים'
       ],
       cta: 'רוצה לשמוע על הארגון הפיסי או על המתקנים?',
-      answer: 'נכון לשנת הלימודים תשפ\"ו: שכבת ז\' – 4 כיתות (ז\'1 מדעית 24, ז\'2 14, ז\'3 19, ז\'4 20) סה\"כ 77. שכבת ח\' – 4 כיתות (ח\'1 מדעית 17, ח\'2 13, ח\'3 25, ח\'4 27) סה\"כ 82. שכבת ט\' – 5 כיתות (ט\'1 מדעית 28, ט\'2 18, ט\'3 18, ט\'4 26, ט\'5 23) סה\"כ 113. כולל הכול: 272 תלמידים בחטיבת הביניים תשפ\"ו.'
+      answer: 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש 272 תלמידים. שכבת ז\' – 77 תלמידים, שכבת ח\' – 82 תלמידים, שכבת ט\' – 113 תלמידים. רוצה לשמוע על שכבה ספציפית או על כיתה מסוימת?'
     },
     {
       topic: 'scientific-class',
@@ -1394,9 +1394,16 @@
   }
 
   function toBullets(text) {
+    // אם הטקסט קצר או לא מכיל נקודות, החזר אותו כמו שהוא
+    if (!text || text.length < 50 || !text.includes('.')) {
+      return text;
+    }
+    // רק אם יש מספר משפטים, נמיר לרשימה
     const parts = text.split(/(?<=\.)\s+/).filter(Boolean);
     if (parts.length <= 1) return text;
-    return '<ul>' + parts.map(p => `<li>${p}</li>`).join('') + '</ul>';
+    // אם יש יותר מ-4 חלקים, נשאיר את הטקסט כמו שהוא (לא נמיר לרשימה ארוכה מדי)
+    if (parts.length > 4) return text;
+    return '<ul style="margin: 0; padding-right: 20px; list-style-type: disc;">' + parts.map(p => `<li style="margin-bottom: 4px;">${p.trim()}</li>`).join('') + '</ul>';
   }
 
   function selectFollowUp(topic) {
@@ -1704,14 +1711,14 @@
                    !normalizedLower.includes('ז2') && !normalizedLower.includes('ז\'2') && !normalizedLower.includes('ז3') && 
                    !normalizedLower.includes('ז\'3') && !normalizedLower.includes('ז4') && !normalizedLower.includes('ז\'4')) {
             // שאלה על שכבת ז' (ללא מספר כיתה ספציפי)
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ז\' – 4 כיתות (ז\'1 מדעית 24, ז\'2 14, ז\'3 19, ז\'4 20) סה"כ 77 תלמידים.';
+            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ז\' – 77 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
           } else if ((normalizedLower.includes('כיתה') || normalizedLower.includes('שכבת') || normalizedLower.includes('שכבה')) && 
                      normalizedLower.includes('ח') && !normalizedLower.includes('ז') && !normalizedLower.includes('ט') && 
                      !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ח1') && !normalizedLower.includes('ח\'1') && 
                      !normalizedLower.includes('ח2') && !normalizedLower.includes('ח\'2') && !normalizedLower.includes('ח3') && 
                      !normalizedLower.includes('ח\'3') && !normalizedLower.includes('ח4') && !normalizedLower.includes('ח\'4')) {
             // שאלה על שכבת ח' (ללא מספר כיתה ספציפי)
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ח\' – 4 כיתות (ח\'1 מדעית 17, ח\'2 13, ח\'3 25, ח\'4 27) סה"כ 82 תלמידים.';
+            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ח\' – 82 תלמידים ב-4 כיתות. רוצה לשמוע על כיתה ספציפית?';
           } else if ((normalizedLower.includes('כיתה') || normalizedLower.includes('שכבת') || normalizedLower.includes('שכבה')) && 
                      normalizedLower.includes('ט') && !normalizedLower.includes('ז') && !normalizedLower.includes('ח') && 
                      !normalizedLower.match(/[1-5]/) && !normalizedLower.includes('ט1') && !normalizedLower.includes('ט\'1') && 
@@ -1719,11 +1726,11 @@
                      !normalizedLower.includes('ט\'3') && !normalizedLower.includes('ט4') && !normalizedLower.includes('ט\'4') && 
                      !normalizedLower.includes('ט5') && !normalizedLower.includes('ט\'5')) {
             // שאלה על שכבת ט' (ללא מספר כיתה ספציפי) - זה כולל "כמה תלמידים בכיתה ט"
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ט\' – 5 כיתות (ט\'1 מדעית 28, ט\'2 18, ט\'3 18, ט\'4 26, ט\'5 23) סה"כ 113 תלמידים.';
+            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: שכבת ט\' – 113 תלמידים ב-5 כיתות. רוצה לשמוע על כיתה ספציפית?';
           }
           // שאלות על כל החטיבה או בית הספר
           else if (normalizedLower.includes('חטיבה') || normalizedLower.includes('בית ספר') || normalizedLower.includes('272') || normalizedLower.includes('סה"כ') || normalizedLower.includes('כל')) {
-            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש סה"כ 272 תלמידים. שכבת ז\' – 77 תלמידים, שכבת ח\' – 82 תלמידים, שכבת ט\' – 113 תלמידים.';
+            focusedAnswer = 'נכון לשנת הלימודים תשפ"ו: בחטיבת הביניים יש 272 תלמידים. שכבת ז\' – 77, שכבת ח\' – 82, שכבת ט\' – 113. רוצה לשמוע על שכבה ספציפית?';
           }
           
           return { answer: focusedAnswer, topic: 'class-count', persona };
@@ -1863,43 +1870,51 @@
       return '';
     }
     
-    // שלב 5: אם זו תשובה ממוקדת, נחזיר אותה עם הצעה חכמה בלבד
+    // שלב 5: אם זו תשובה ממוקדת, נחזיר אותה עם הצעה חכמה בלבד (בלי greeting, spice, persona)
     if (isFocused) {
       const suggestion = getSmartSuggestion(topic, specificQuestion);
       const more = getSuggestions(topic);
+      // תשובות ממוקדות קצרות - רק התשובה + הצעה + נושאים נוספים
       return `${answer}${suggestion ? '<br><br>💡 ' + suggestion : ''}<br><br>🔎 ${more}`;
     }
     
     // אם התשובה כבר מכילה את כל המידע, לא צריך להוסיף הרבה
     const answerLength = answer.length;
-    const isLongAnswer = answerLength > 300;
+    const isLongAnswer = answerLength > 200; // שינוי: 200 במקום 300 - תשובות קצרות יותר
+    const isVeryLongAnswer = answerLength > 400; // תשובות ארוכות מאוד
     
-    // בחירת greeting - רק אם התשובה לא ארוכה מדי
-    const greet = isLongAnswer ? '' : greetings[Math.floor(Math.random() * greetings.length)];
-    const spice = isLongAnswer ? '' : witty[Math.floor(Math.random() * witty.length)];
+    // אם התשובה ארוכה מאוד, רק התשובה + follow-up קצר
+    if (isVeryLongAnswer) {
+      const more = getSuggestions(topic);
+      return `${answer}<br><br>🔎 ${more}`;
+    }
+    
+    // אם התשובה ארוכה, רק התשובה + follow-up (בלי greeting, spice, persona)
+    if (isLongAnswer) {
+      const more = getSuggestions(topic);
+      return `${answer}<br><br>🔎 ${more}`;
+    }
+    
+    // תשובות קצרות - נוסיף greeting וכו' רק אם התשובה קצרה
+    const greet = greetings[Math.floor(Math.random() * greetings.length)];
     const follow = selectFollowUp(topic);
-    const emojiSet = isLongAnswer ? '' : [emojis[Math.floor(Math.random() * emojis.length)], emojis[Math.floor(Math.random() * emojis.length)]].join(' ');
+    const more = getSuggestions(topic);
     
-    // persona line - רק אם התשובה לא ארוכה מדי
-    let personaLine = '';
-    if (!isLongAnswer) {
-      personaLine = persona === 'parent'
+    // רק אם התשובה קצרה מאוד (פחות מ-100 תווים), נוסיף spice ו-persona
+    if (answerLength < 100) {
+      const spice = witty[Math.floor(Math.random() * witty.length)];
+      const personaLine = persona === 'parent'
         ? 'כהורה, ברור שחשוב לך הביטחון והליווי – אני כאן עם תשובות קצרות וברורות.'
         : persona === 'teacher'
           ? 'כמורה, תראה שהמסלולים והחדשנות בנויים לתלמידים סקרנים.'
           : persona === 'principal'
             ? 'כמנהל/ת, תשמח/י לדעת שהמצויינות והחדשנות מובילים את החטיבה.'
-            : 'כשאני הייתי בחטיבה, למדתי שזריזות ושאלה טובה חוסכות לחץ. עוד רגע תקבל/י קיצור דרך.';
+            : '';
+      return `${greet}<br>${answer}${spice ? '<br>' + spice : ''}${personaLine ? '<br>' + personaLine : ''}<br><br>${follow}<br><br>🔎 ${more}`;
     }
     
-    // בניית התשובה - אם התשובה ארוכה, פשוט להחזיר אותה עם follow-up
-    if (isLongAnswer) {
-      const more = getSuggestions(topic);
-      return `${toBullets(answer)}<br><br>${follow}<br><br>🔎 ${more}`;
-    }
-    
-    const more = getSuggestions(topic);
-    return `${greet} ${emojiSet}<br>${toBullets(answer)}<br>${spice}<br>${personaLine}<br>${follow}<br><br>🔎 ${more}`;
+    // תשובות בינוניות - רק greeting + תשובה + follow-up
+    return `${greet}<br>${answer}<br><br>${follow}<br><br>🔎 ${more}`;
   }
 
   window.onSend = function() {

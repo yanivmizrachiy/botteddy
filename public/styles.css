@@ -59,7 +59,7 @@
 body {
   margin: 0;
   background: var(--bg);
-  font-family: 'Assistant', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Assistant', 'Arial', 'Helvetica', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text);
   line-height: 1.6;
   position: relative;
@@ -80,7 +80,7 @@ body::after {
   text-shadow: 
     0 0 80px rgba(43, 209, 255, 0.12),
     0 0 120px rgba(43, 209, 255, 0.08);
-  font-family: 'Assistant', sans-serif;
+  font-family: 'Assistant', 'Arial', 'Helvetica', sans-serif;
   letter-spacing: -0.05em;
 }
 @keyframes floatQuestion {
@@ -514,7 +514,7 @@ main.app-shell {
   font-size: 1rem;
   line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
   box-sizing: border-box; /* כולל padding ו-border בגודל */
-  font-family: 'Assistant', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Assistant', 'Arial', 'Helvetica', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   hyphens: auto;
   min-width: 0; /* מאפשר לתיבה להתכווץ מתחת לתוכן המינימלי */
   width: fit-content; /* רוחב לפי התוכן */
@@ -610,7 +610,7 @@ main.app-shell {
   margin: 0;
   line-height: 1.7; /* הגדלתי את ה-line-height לקריאות טובה יותר */
   font-size: 1rem;
-  font-family: 'Assistant', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Assistant', 'Arial', 'Helvetica', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
