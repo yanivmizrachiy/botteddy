@@ -1767,8 +1767,31 @@
         }
       });
       
-      if (bestScore >= 1) {
+      // הורדנו את הסף ל-0.5 כדי למצוא יותר תוצאות
+      if (bestScore >= 0.5) {
         result = knowledgeBase.find(item => item.topic === bestTopic);
+      }
+    }
+    
+    // אם לא מצאנו כלום, נחפש בכל knowledgeBase לפי מילות מפתח
+    if (!result && words.length > 0) {
+      for (const item of knowledgeBase) {
+        const itemText = `${item.topic} ${item.synonyms.join(' ')} ${item.answer}`.toLowerCase();
+        const normalizedItemText = normalizeText(itemText);
+        
+        // בדיקה אם יש התאמה חלקית
+        let matchCount = 0;
+        for (const word of words) {
+          if (normalizedItemText.includes(word) && word.length > 2) {
+            matchCount++;
+          }
+        }
+        
+        // אם יש לפחות התאמה אחת, נחזיר את זה
+        if (matchCount > 0 && !result) {
+          result = item;
+          break;
+        }
       }
     }
     
@@ -2224,8 +2247,77 @@
       increment('solution');
       return { answer: `הפתרון: ${ans}`, topic: 'quiz', persona };
     }
+    // FALLBACK חכם - חיפוש 3 הנושאים הקרובים ביותר במקום תשובת ברירת מחדל
     increment('fallback');
-    return { answer: 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.', topic: 'fallback', persona };
+    
+    // חיפוש חכם - נחפש מילות מפתח בשאלה ונמצא את הנושאים הקרובים ביותר
+    const words = normalizedLower.split(/\s+/).filter(w => w.length > 2);
+    const topicScores = new Map();
+    
+    // חיפוש בכל knowledgeBase
+    for (const item of knowledgeBase) {
+      let score = 0;
+      const allText = `${item.topic} ${item.synonyms.join(' ')} ${item.answer}`.toLowerCase();
+      
+      for (const word of words) {
+        if (allText.includes(word)) {
+          score += 1;
+        }
+        // חיפוש ב-synonyms
+        if (item.synonyms.some(syn => normalizeText(syn).includes(word))) {
+          score += 2;
+        }
+      }
+      
+      if (score > 0) {
+        topicScores.set(item.topic, score);
+      }
+    }
+    
+    // מציאת 3 הנושאים עם הציון הגבוה ביותר
+    const topTopics = Array.from(topicScores.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([topic]) => topic);
+    
+    if (topTopics.length > 0) {
+      // נחזיר תשובה חכמה עם 3 הצעות
+      const topTopic = knowledgeBase.find(k => k.topic === topTopics[0]);
+      if (topTopic) {
+        const shortAnswer = shortenAnswer(topTopic.answer, 1);
+        const suggestions = topTopics.slice(0, 2).map(t => {
+          const item = knowledgeBase.find(k => k.topic === t);
+          const labels = {
+            principal: 'הצוות החינוכי',
+            staff: 'צוות שכבה ומורים',
+            schedule: 'שעות ותלמידים',
+            location: 'מיקום ובית הספר',
+            trips: 'טיולים שנתיים',
+            regulations: 'תקנון וכללים',
+            innovation: 'חדשנות',
+            tracks: 'מסלולים מיוחדים',
+            support: 'תמיכה וליווי',
+            social: 'חיים חברתיים',
+            'class-count': 'מספר תלמידים',
+            'physical-layout': 'ארגון פיסי'
+          };
+          return labels[t] || t;
+        });
+        
+        return { 
+          answer: `${shortAnswer}<br><br>💡 רוצה לשמוע עוד? ${suggestions[0]} או ${suggestions[1]}?`, 
+          topic: topTopics[0], 
+          persona 
+        };
+      }
+    }
+    
+    // אם לא מצאנו כלום, נחזיר תשובה כללית עם הצעות
+    return { 
+      answer: 'אני כאן לעזור לך להכיר את חטיבת הביניים בטדי קולק. שאל אותי על שעות הלימוד, מספר תלמידים, מסלולים מיוחדים, תמיכה וליווי, או כל נושא אחר שמעניין אותך.<br><br>💡 רוצה לשמוע עוד? שעות ותלמידים או מסלולים מיוחדים?', 
+      topic: 'catalog', 
+      persona 
+    };
   }
 
   window.craftReply = function craftReply(q) {
