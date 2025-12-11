@@ -95,67 +95,39 @@
       }
       
       // יצירת תשובה
+      const greetingReply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
+      const greetingInQuestion = ['שלום', 'היי', 'הי', 'hi', 'hello'].some(w => q.toLowerCase().includes(w));
       let reply = '';
       try {
         if (typeof window.craftReply === 'function') {
           reply = window.craftReply(q);
           console.log('תשובה:', reply);
-          // אם התשובה ריקה או לא תקינה, נשתמש ב-matchAnswer ישירות
-          if (!reply || reply.trim() === '' || reply === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
-            if (typeof window.matchAnswer === 'function') {
-              const matchResult = window.matchAnswer(q);
-              if (matchResult && matchResult.answer) {
-                reply = matchResult.answer;
-                // הוספת הצעות אם יש - נשתמש ב-craftReply אם אפשר
-                if (matchResult.topic && typeof window.craftReply === 'function') {
-                  try {
-                    const crafted = window.craftReply(q);
-                    if (crafted && crafted.trim() !== '') {
-                      reply = crafted;
-                    }
-                  } catch (e) {
-                    // אם יש שגיאה, נשאיר את התשובה המקורית
-                  }
-                }
-              } else {
-                reply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
-              }
-            } else {
-              reply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
-            }
-          }
-        } else {
-          // אם craftReply לא מוגדרת, נשתמש ב-matchAnswer ישירות
+        }
+
+        // אם craftReply לא זמינה או לא החזירה תשובה טובה, ננסה ישירות matchAnswer
+        if (!reply || reply.trim() === '' || reply === 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.') {
           if (typeof window.matchAnswer === 'function') {
             const matchResult = window.matchAnswer(q);
             if (matchResult && matchResult.answer) {
               reply = matchResult.answer;
-              // ננסה להשתמש ב-craftReply אם היא מוגדרת עכשיו
-              if (typeof window.craftReply === 'function') {
-                try {
-                  const crafted = window.craftReply(q);
-                  if (crafted && crafted.trim() !== '') {
-                    reply = crafted;
-                  }
-                } catch (e) {
-                  // אם יש שגיאה, נשאיר את התשובה המקורית
+              // הוספת הצעות אם יש
+              if (matchResult.topic && typeof window.getTwoSuggestions === 'function') {
+                const suggestions = window.getTwoSuggestions(matchResult.topic, matchResult.specificQuestion);
+                if (suggestions) {
+                  reply = `${reply}<br><br>💡 רוצה לשמוע עוד? ${suggestions}`;
                 }
               }
-            } else {
-              reply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
             }
-          } else {
-            reply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
           }
         }
-      } catch (err) {
-        console.error('שגיאה ב-craftReply:', err);
-        // fallback לברכה במקום תשובת ברירת מחדל
-        if (q.toLowerCase().includes('שלום') || q.toLowerCase().includes('היי') || q.toLowerCase().includes('הי') || q.toLowerCase().includes('hi') || q.toLowerCase().includes('hello')) {
-          reply = 'היי! אני כאן לספר על החטיבה בטדי קולק: יום לימודים, חברים ופעילויות, חדשנות ומסלולים. על מה הכי בא לך להתחיל?';
-        } else {
-          reply = 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
+
+        // אם עדיין אין תשובה, נשתמש בברכת ברירת מחדל
+        if (!reply || reply.trim() === '') {
+          reply = greetingInQuestion ? greetingReply : 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
         }
+      } catch (err) {
+        console.error('שגיאה ב-craftReply/matchAnswer:', err);
+        reply = greetingInQuestion ? greetingReply : 'על כך יוכלו לענות אנשי הצוות בחטיבת טדי קולק.';
       }
       
       // הוספת בועת תשובה
