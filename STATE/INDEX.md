@@ -1,0 +1,1 @@
+# 📌 CONTROL INDEX — botteddy\n\n## 2026-03-01T00:32:55+02:00 — init\n
